@@ -1,9 +1,10 @@
 import './canvas.scss';
+import { ICanvas } from '../declare/declare';
 
-class Canvas {
+class Canvas implements ICanvas {
   private container: HTMLElement | null;
-  private element: any;
-  private context: any;
+  private element: HTMLCanvasElement | null;
+  private context: RenderingContext | null;
 
   constructor(elementSelector: string) {
     this.container = document.querySelector(elementSelector);
@@ -19,7 +20,7 @@ class Canvas {
 
   public destroy() {
     this.context = null;
-    if (this.container) {
+    if (this.container && this.element) {
       this.container.removeChild(this.element);
     }
     this.element = null;

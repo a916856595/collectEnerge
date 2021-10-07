@@ -1,4 +1,6 @@
-class Controller {
+import { IController } from '../declare/declare';
+
+class Controller implements IController {
 
 }
 
