@@ -1,12 +1,15 @@
 import './canvas.scss';
 import { ICanvas } from '../declare/declare';
+import BaseEvent from './event';
+import { LIFE_ERROR } from '../constant/lifeCycle';
 
-class Canvas implements ICanvas {
+class Canvas extends BaseEvent implements ICanvas {
   private container: HTMLElement | null;
   private element: HTMLCanvasElement | null;
-  private context: RenderingContext | null;
+  private context: RenderingContext | null = null;
 
   constructor(elementSelector: string) {
+    super();
     this.container = document.querySelector(elementSelector);
     this.element = document.createElement('canvas');
     this.element.classList.add('collect-energy-canvas');
@@ -14,7 +17,7 @@ class Canvas implements ICanvas {
       this.container.appendChild(this.element);
       this.context = this.element.getContext('2D');
     } else {
-      throw(new Error('can not find element of container'));
+      this.postponeFire(LIFE_ERROR, { message: 'can not find element of container' });
     }
   }
 
@@ -25,6 +28,7 @@ class Canvas implements ICanvas {
     }
     this.element = null;
     this.container = null;
+    super.destroy();
   }
 }
 
