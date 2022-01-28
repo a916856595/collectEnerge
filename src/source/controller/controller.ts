@@ -17,6 +17,7 @@ class Controller extends BaseEvent implements IController {
     super();
     this.canvas = canvas;
     this.imageLoader = new ImageLoader();
+    // load image source
     Object.entries(globeConfig.imageConfig).forEach((nameAndUrl: [string, string]) => {
       const [name, url] = nameAndUrl;
       this.imageLoader.load(name, url);
@@ -44,7 +45,13 @@ class Controller extends BaseEvent implements IController {
     });
   }
 
-  public init(): this {
+  public start(): this {
+    this.state = 'running'
+    return this;
+  }
+
+  public pause(): this {
+    this.state = 'pausing';
     return this;
   }
 

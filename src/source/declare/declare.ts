@@ -24,11 +24,12 @@ export interface ICanvas extends IBaseEvent {
 }
 
 export interface IController extends IBaseEvent {
-  init: () => this;
+  start: () => this;
+  pause: () => this;
   destroy: () => void;
 }
 
-export type controllerStateType = 'pause' | 'processing' | 'end' | 'preparation' | 'waiting';
+export type controllerStateType = 'pausing' | 'running' | 'ended' | 'preparation' | 'waiting';
 
 export interface IObject {
   [key: string]: any;

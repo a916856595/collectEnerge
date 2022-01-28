@@ -16,15 +16,19 @@ interface IImageMap {
 }
 
 class ImageLoader extends BaseEvent implements IIMageLoader {
-  private imageMap: IImageMap = {};
+  private imageMap: IImageMap | null = {};
 
   private checkIsLoadFinish() {
-    const isAllComplete = Object.values(this.imageMap).every((imageInfo: IImageInfo) => imageInfo.state !== LIFE_LOADING);
+    let isAllComplete = false;
+    if (this.imageMap) {
+      isAllComplete = Object.values(this.imageMap).every((imageInfo: IImageInfo) => imageInfo.state !== LIFE_LOADING);
+    }
     if (isAllComplete) this.fire(LIFE_FINISH);
     return isAllComplete;
   }
 
   public load(name: string, url: string): this {
+    if (!this.imageMap) return this;
     if (!this.imageMap[name]) {
       this.imageMap[name] = { url, state: LIFE_LOADING, name };
     }
@@ -43,6 +47,11 @@ class ImageLoader extends BaseEvent implements IIMageLoader {
       image.src = url;
     }
     return this;
+  }
+
+  public destroy() {
+    this.imageMap = null;
+    super.destroy();
   }
 }
 
