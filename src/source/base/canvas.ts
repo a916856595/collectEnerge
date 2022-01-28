@@ -1,7 +1,7 @@
 import './canvas.scss';
 import { ICanvas } from '../declare/declare';
 import BaseEvent from './event';
-import { LIFE_ERROR } from '../constant/lifeCycle';
+import { LIFE_ERROR, LIFE_FINISH } from '../constant/lifeCycle';
 
 class Canvas extends BaseEvent implements ICanvas {
   private container: HTMLElement | null;
@@ -16,8 +16,12 @@ class Canvas extends BaseEvent implements ICanvas {
     if (this.container) {
       this.container.appendChild(this.element);
       this.context = this.element.getContext('2D');
+      this.postponeFire(LIFE_FINISH);
     } else {
-      this.postponeFire(LIFE_ERROR, { message: 'can not find element of container' });
+      this.postponeFire(
+        LIFE_ERROR,
+        { message: `Can not find container element that selector is '${elementSelector}'.` }
+      );
     }
   }
 
