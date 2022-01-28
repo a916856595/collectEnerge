@@ -33,7 +33,12 @@ class BaseEvent implements IBaseEvent {
     const collectionMap = isOnce ? this.oneTimeEventCollectionMap : this.eventCollectionMap;
     if (collectionMap && collectionMap[eventType]) {
       collectionMap[eventType].forEach((handler: Function) => {
-        const event = Object.assign(new Event(eventType), parameters);
+        let event = new Event(eventType);
+        if (parameters) {
+          const { isTrusted, ...params } = parameters;
+          event = Object.assign(event, params);
+        }
+
         handler.call(this, event);
       });
       // If operation is once, clearing handler.

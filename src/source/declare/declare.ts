@@ -1,7 +1,3 @@
-export interface ICollectEnergy {
-
-}
-
 export type handlerType = (event: IObject) => void;
 
 export interface IBaseEvent {
@@ -12,15 +8,23 @@ export interface IBaseEvent {
   postponeFire: (eventType: string, parameters?: IObject, delay?: number) => this;
 }
 
+
+export interface ICollectEnergy extends IBaseEvent{
+
+}
+
+
 export interface IEventRecorder {
   [key: string]: Function[];
 }
 
-export interface ICanvas extends IBaseEvent{
+export interface ICanvas extends IBaseEvent {
+  getSize: () => { width: number, height: number };
   destroy: () => void;
 }
 
-export interface IController {
+export interface IController extends IBaseEvent {
+  init: () => this;
   destroy: () => void;
 }
 
@@ -28,4 +32,8 @@ export type controllerStateType = 'pause' | 'processing' | 'end' | 'preparation'
 
 export interface IObject {
   [key: string]: any;
+}
+
+export interface IIMageLoader extends  IBaseEvent {
+  load: (name: string, url: string) => this;
 }
