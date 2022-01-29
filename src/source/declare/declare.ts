@@ -1,4 +1,8 @@
 export type handlerType = (event: IObject) => void;
+export type coordinateType = [number, number];
+export type coordinatesType = coordinateType[];
+export type canvasAnchorType = 'center' | 'left' | 'right';
+export type backgroundType = 'color' | 'image';
 
 export interface IBaseEvent {
   on: (eventType: string, handler: handlerType) => this;
@@ -9,8 +13,10 @@ export interface IBaseEvent {
 }
 
 
-export interface ICollectEnergy extends IBaseEvent{
-
+export interface ICollectEnergy extends IBaseEvent {
+  start: () => this;
+  pause: () => this;
+  destroy: () => void;
 }
 
 
@@ -20,7 +26,11 @@ export interface IEventRecorder {
 
 export interface ICanvas extends IBaseEvent {
   getSize: () => { width: number, height: number };
+  setImageLoader: (imageLoader: IIMageLoader) => this;
   destroy: () => void;
+  clear: () => this;
+  drawFillRect: (coordinates: coordinatesType, fillColor: string) => this;
+  drawImage: (coordinates: coordinatesType, imageName: string) => this;
 }
 
 export interface IController extends IBaseEvent {
@@ -35,6 +45,8 @@ export interface IObject {
   [key: string]: any;
 }
 
-export interface IIMageLoader extends  IBaseEvent {
+export interface IIMageLoader extends IBaseEvent {
   load: (name: string, url: string) => this;
+  getImageSource: (imageName: string) => HTMLImageElement | null;
+  destroy: () => void;
 }

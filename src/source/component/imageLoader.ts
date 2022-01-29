@@ -9,6 +9,7 @@ interface IImageInfo {
   state: imageStateType;
   url: string;
   name: string;
+  image: HTMLImageElement;
 }
 
 interface IImageMap {
@@ -30,11 +31,16 @@ class ImageLoader extends BaseEvent implements IIMageLoader {
   public load(name: string, url: string): this {
     if (!this.imageMap) return this;
     if (!this.imageMap[name]) {
-      this.imageMap[name] = { url, state: LIFE_LOADING, name };
+      this.imageMap[name] = {
+        url,
+        state: LIFE_LOADING,
+        name,
+        image: new Image()
+      };
     }
     const imageInfo = this.imageMap[name];
     if (imageInfo.state !== LIFE_SUCCESS) {
-      const image = new Image();
+      const image = imageInfo.image;
       image.addEventListener(LOAD, () => {
         imageInfo.state = LIFE_SUCCESS;
         this.fire(LOAD, { name, url });
@@ -47,6 +53,14 @@ class ImageLoader extends BaseEvent implements IIMageLoader {
       image.src = url;
     }
     return this;
+  }
+
+  public getImageSource(imageName: string): HTMLImageElement | null {
+    let result = null;
+    if (this.imageMap && this.imageMap[imageName]) {
+      result = this.imageMap[imageName].image;
+    }
+    return result;
   }
 
   public destroy() {
