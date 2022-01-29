@@ -17,11 +17,17 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
 
   constructor(collectEnergyOptions: ICollectEnergyOptions) {
     super();
-    const { container, width, height } = collectEnergyOptions;
+    const {
+      container,
+      width,
+      height,
+      anchor
+    } = collectEnergyOptions;
     this.canvas = new Canvas(container);
     this.controller = new Controller(this.canvas, {
       width,
-      height
+      height,
+      anchor
     });
     this.controller.on(LIFE_FINISH, (event: IObject) => {
       this.postponeFire(LIFE_FINISH, event);

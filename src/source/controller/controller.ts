@@ -19,13 +19,10 @@ import Background from '../ui/background';
 interface IControllerOptions {
   width?: string;
   height?: string;
-  anchor?: canvasAnchorType;
+  anchor?: canvasAnchorType; // operation area anchor, optional center / left / right / top / bottom.
 }
 
 const CENTER = 'center';
-const LEFT = 'left';
-const RIGHT = 'right';
-const canvasAnchors = [CENTER, LEFT, RIGHT];
 const controllerDefaultOptions = {
   width: 'auto',
   height: 'auto',
@@ -106,38 +103,36 @@ class Controller extends BaseEvent implements IController {
     if (this.canvas && this.options) {
       const canvasSize = this.canvas.getSize();
       const { width, height, anchor } = this.options;
-      this.operationalWidth = this.getContentLength(canvasSize.width, width);
-      this.operationalHeight = this.getContentLength(canvasSize.height, height);
+      const canvasWidth = canvasSize.width;
+      const canvasHeight = canvasSize.height;
+      const operationalWidth = this.operationalWidth = this.getContentLength(canvasSize.width, width);
+      const operationalHeight = this.operationalHeight = this.getContentLength(canvasSize.height, height);
+      const widthDiff = canvasWidth - operationalWidth;
+      const heightDiff = canvasHeight - operationalHeight;
+      const halfWidthDiff = widthDiff / 2;
+      const halfHeightDiff = heightDiff / 2;
       let topLeftCoordinate: coordinateType;
       let bottomRightCoordinate: coordinateType;
       switch(anchor) {
         case 'left':
-          topLeftCoordinate = [0, 0];
-          bottomRightCoordinate = [
-            this.operationalWidth,
-            this.operationalHeight
-          ];
+          topLeftCoordinate = [0, halfHeightDiff];
           break;
         case 'right':
-          topLeftCoordinate = [
-            canvasSize.width - this.operationalWidth,
-            0
-          ];
-          bottomRightCoordinate = [
-            canvasSize.width,
-            this.operationalHeight
-          ];
+          topLeftCoordinate = [widthDiff, halfHeightDiff];
+          break;
+        case 'top':
+          topLeftCoordinate = [halfWidthDiff, 0];
+          break;
+        case 'bottom':
+          topLeftCoordinate = [halfWidthDiff, heightDiff];
           break;
         default:
-          topLeftCoordinate = [
-            (canvasSize.width - this.operationalWidth) / 2,
-            (canvasSize.height - this.operationalHeight) / 2
-          ];
-          bottomRightCoordinate = [
-            (canvasSize.width - this.operationalWidth) / 2 + this.operationalWidth,
-            (canvasSize.height - this.operationalHeight) / 2 + this.operationalHeight,
-          ];
+          topLeftCoordinate = [halfWidthDiff, halfHeightDiff];
       }
+      bottomRightCoordinate = [
+        topLeftCoordinate[0] + operationalWidth,
+        topLeftCoordinate[1] + operationalHeight
+      ]
       this.operationalAreaCoordinates = [topLeftCoordinate, bottomRightCoordinate];
     }
   }

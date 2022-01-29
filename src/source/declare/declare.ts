@@ -1,7 +1,7 @@
 export type handlerType = (event: IObject) => void;
 export type coordinateType = [number, number];
 export type coordinatesType = coordinateType[];
-export type canvasAnchorType = 'center' | 'left' | 'right';
+export type canvasAnchorType = 'center' | 'left' | 'right' | 'top' | 'bottom';
 export type backgroundType = 'color' | 'image';
 
 export interface IBaseEvent {
