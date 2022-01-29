@@ -15,6 +15,7 @@ import globeConfig from '../../../config/uiConfig';
 import { getMergedOptions } from '../util/methods';
 import { RESIZE } from '../constant/baseEvent';
 import Background from '../ui/background';
+import Globe from '../ui/globe';
 
 interface IControllerOptions {
   width?: string;
@@ -153,6 +154,12 @@ class Controller extends BaseEvent implements IController {
           });
         } else background.update(this.operationalAreaCoordinates);
         background.display();
+
+        const globe = new Globe(this.canvas, {
+          coordinate: [80, 80],
+          radius: 30
+        });
+        globe.display();
       }
       if (this.state === 'running') this.frame();
     });

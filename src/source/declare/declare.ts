@@ -53,5 +53,7 @@ export interface IIMageLoader extends IBaseEvent {
 }
 
 export interface IGlobe extends IBaseEvent {
+  display: () => this;
+  update: (timeStamp: number) => this;
   destroy: () => void;
 }

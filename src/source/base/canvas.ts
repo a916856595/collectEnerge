@@ -109,7 +109,7 @@ class Canvas extends BaseEvent implements ICanvas {
     if (this.context) {
       this.context.beginPath();
       this.context.moveTo(coordinate[0], coordinate[1]);
-      this.context.arc(coordinate[0], coordinate[1], radius, 0, 0);
+      this.context.arc(coordinate[0], coordinate[1], radius, 0, 2 * Math.PI);
       this.context.fillStyle = fillColor;
       this.context.fill();
     }
