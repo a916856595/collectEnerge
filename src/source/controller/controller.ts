@@ -39,6 +39,7 @@ class Controller extends BaseEvent implements IController {
   private operationalHeight: number = 0;
   private frameSign: number = 0;
   private timeStamp: number = 0;
+  private uiComponents: IObject | null = {};
 
   constructor(canvas: ICanvas, controllerOptions: IControllerOptions = {}) {
     super();
@@ -139,17 +140,21 @@ class Controller extends BaseEvent implements IController {
 
   private frame(): number {
     return requestAnimationFrame(() => {
-      if (this.canvas && this.operationalAreaCoordinates) {
+      if (this.canvas && this.operationalAreaCoordinates && this.uiComponents) {
         this.canvas.clear();
-        const background = new Background(this.canvas, {
-          backgroundType: 'color',
-          backgroundValue: 'pink',
-          foregroundType: 'color',
-          foregroundValue: 'green',
-          foregroundCoordinates: this.operationalAreaCoordinates
-        });
+        let background = this.uiComponents.background;
+        if (!background) {
+          background = this.uiComponents.background = new Background(this.canvas, {
+            backgroundType: 'color',
+            backgroundValue: 'black',
+            foregroundType: 'image',
+            foregroundValue: 'background',
+            foregroundCoordinates: this.operationalAreaCoordinates
+          });
+        } else background.update(this.operationalAreaCoordinates);
         background.display();
       }
+      if (this.state === 'running') this.frame();
     });
   }
 
@@ -180,6 +185,12 @@ class Controller extends BaseEvent implements IController {
     if (this.imageLoader) {
       this.imageLoader.destroy();
       this.imageLoader = null;
+    }
+    if (this.uiComponents) {
+      Object.values(this.uiComponents).forEach((uiComponent) => {
+        uiComponent.destroy();
+      });
+      this.uiComponents = null;
     }
     this.operationalAreaCoordinates = null;
     this.options = null;

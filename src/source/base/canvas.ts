@@ -1,5 +1,5 @@
 import './canvas.scss';
-import { coordinatesType, ICanvas, IIMageLoader, IObject } from '../declare/declare';
+import { coordinatesType, coordinateType, ICanvas, IIMageLoader, IObject } from '../declare/declare';
 import BaseEvent from './event';
 import { LIFE_ERROR, LIFE_FINISH } from '../constant/life';
 import { RESIZE } from '../constant/baseEvent';
@@ -101,6 +101,17 @@ class Canvas extends BaseEvent implements ICanvas {
         bottomRightCoordinate[0] - topLeftCoordinate[0],
         bottomRightCoordinate[1] - topLeftCoordinate[1],
       );
+    }
+    return this;
+  }
+
+  public drawFillCircle(coordinate: coordinateType, radius: number, fillColor: string): this {
+    if (this.context) {
+      this.context.beginPath();
+      this.context.moveTo(coordinate[0], coordinate[1]);
+      this.context.arc(coordinate[0], coordinate[1], radius, 0, 0);
+      this.context.fillStyle = fillColor;
+      this.context.fill();
     }
     return this;
   }

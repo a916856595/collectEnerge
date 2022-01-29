@@ -42,7 +42,7 @@ class Background extends BaseEvent {
 
   public display(): this {
     if (
-      this.canvas&&
+      this.canvas &&
       this.options &&
       this.options.backgroundType &&
       this.options.backgroundValue &&

@@ -31,6 +31,7 @@ export interface ICanvas extends IBaseEvent {
   clear: () => this;
   drawFillRect: (coordinates: coordinatesType, fillColor: string) => this;
   drawImage: (coordinates: coordinatesType, imageName: string) => this;
+  drawFillCircle: (coordinate: coordinateType, radius: number, fillColor: string) => this;
 }
 
 export interface IController extends IBaseEvent {
@@ -48,5 +49,9 @@ export interface IObject {
 export interface IIMageLoader extends IBaseEvent {
   load: (name: string, url: string) => this;
   getImageSource: (imageName: string) => HTMLImageElement | null;
+  destroy: () => void;
+}
+
+export interface IGlobe extends IBaseEvent {
   destroy: () => void;
 }

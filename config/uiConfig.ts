@@ -1,5 +1,5 @@
 export default {
   imageConfig: {
-    background: 'http://t15.baidu.com/it/u=1340222850,2708363264&fm=224&app=112&f=JPEG'
+    background: 'https://t7.baidu.com/it/u=2604797219,1573897854&fm=193&f=GIF'
   }
 }
