@@ -1,48 +1,40 @@
-import BaseEvent from '../base/event';
-import { coordinateType, ICanvas, IGlobe } from '../declare/declare';
+import { ICanvas, IGlobe, IGlobeOptions, IModifiableThingConfig } from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
-
-interface IGlobeOptions {
-  coordinate: coordinateType;
-  radius: number;
-  color?: string;
-}
+import Thing from './thing';
 
 const globeDefaultOptions = {
   color: 'green'
 };
 
-class Globe extends BaseEvent implements IGlobe {
+class Globe extends Thing implements IGlobe {
   private canvas: ICanvas | null = null;
-  private birthTime: number = 0;
-  private options: IGlobeOptions | null = null;
-
-  constructor(canvas: ICanvas, globeOptions: IGlobeOptions) {
-    super();
-    this.canvas = canvas;
-    this.birthTime = Date.now();
-    this.options = getMergedOptions(globeDefaultOptions, globeOptions) as IGlobeOptions;
-  }
+  private globeOptions: IGlobeOptions | null = null;
 
   public display() {
     if (
       this.canvas &&
-      this.options &&
-      this.options.coordinate &&
-      this.options.radius
-    ) {
-      this.canvas.drawFillCircle(this.options.coordinate, this.options.radius, this.options.color as string);
+      this.globeOptions &&
+      this.globeOptions.radius &&
+      this.coordinate
+  ) {
+      this.canvas.drawFillCircle(this.coordinate, this.globeOptions.radius, this.globeOptions.color as string);
     }
     return this;
   }
 
-  public update(timeStamp: number) {
+  constructor(canvas: ICanvas, globeOptions: IGlobeOptions) {
+    super(globeOptions);
+    this.canvas = canvas;
+    this.globeOptions = getMergedOptions(globeDefaultOptions, globeOptions) as IGlobeOptions;
+  }
+
+  public update(span: number, modifiableThingConfig?: IModifiableThingConfig) {
+    super.update(span, modifiableThingConfig);
     return this;
   }
 
   public destroy() {
-    this.birthTime = 0;
-    this.options = null;
+    this.globeOptions = null;
     this.canvas = null;
     super.destroy();
   }

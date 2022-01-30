@@ -16,6 +16,7 @@ import { getMergedOptions } from '../util/methods';
 import { RESIZE } from '../constant/baseEvent';
 import Background from '../ui/background';
 import Globe from '../ui/globe';
+import { VERTICAL_ACCELERATION } from '../../../config/config';
 
 interface IControllerOptions {
   width?: string;
@@ -163,6 +164,8 @@ class Controller extends BaseEvent implements IController {
 
   private frame(): number {
     return requestAnimationFrame(() => {
+      const timeStamp = Date.now();
+      const span = (timeStamp - this.timeStamp) / 1000;
       if (this.canvas && this.operationalAreaCoordinates && this.uiComponents) {
         this.canvas.clear();
         let background = this.uiComponents.background;
@@ -177,13 +180,26 @@ class Controller extends BaseEvent implements IController {
         } else background.update(this.operationalAreaCoordinates);
         background.display();
 
-        const globe = new Globe(this.canvas, {
-          coordinate: [80, 80],
-          radius: 30
-        });
-        globe.display();
+        if (!this.uiComponents.globe) {
+          this.uiComponents.globe = new Globe(this.canvas, {
+            coordinate: [80, 80],
+            radius: 30,
+            xSpeed: 0,
+            ySpeed: 0,
+            xMaxSpeed: 30,
+            yMaxSpeed: 600,
+            xAcceleration: 0,
+            yAcceleration: VERTICAL_ACCELERATION
+          });
+          this.uiComponents.globe.display();
+        } else {
+          this.uiComponents.globe.update(span);
+          this.uiComponents.globe.display();
+        }
+
       }
       if (this.state === 'running') this.frame();
+      this.timeStamp = timeStamp;
     });
   }
 
@@ -192,7 +208,6 @@ class Controller extends BaseEvent implements IController {
       cancelAnimationFrame(this.frameSign);
     }
     this.frameSign = this.frame();
-    this.timeStamp = Date.now();
   }
 
   public start(): this {

@@ -1,1 +1,1 @@
-export const VERTICAL_ACCELERATION = 10;  // vertical acceleration of thing
+export const VERTICAL_ACCELERATION = 300;  // vertical acceleration of thing

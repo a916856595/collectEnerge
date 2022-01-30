@@ -1,62 +1,72 @@
 import BaseEvent from '../base/event';
-import { ICanvas } from '../declare/declare';
+import { coordinateType, IModifiableThingConfig, IThing, IThingConfig, IThingOptions } from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
 
-
-interface IModifiableThingConfig {
-  xAcceleration?: number;
-  yAcceleration?: number;
-}
-interface IThingConfig extends IModifiableThingConfig {
-  xSpeed?: number;
-  ySpeed?: number;
-}
-interface IThingOptions extends IThingConfig {
-  timeStamp: number;
-}
 
 const thingDefaultConfig = {
   xSpeed: 0,
   ySpeed: 0,
+  xMaxSpeed: 0,
+  yMaxSpeed: 0,
   xAcceleration: 0,
-  yAcceleration: 0
+  yAcceleration: 0,
 };
 
-class Thing extends BaseEvent {
-  private timeStamp: number = 0;
-  private options: IThingConfig | null = {};
+class Thing extends BaseEvent implements IThing {
+  public coordinate: coordinateType | null;
+  private options: IThingConfig | null = null;
 
 
-  constructor(canvas: ICanvas, thingOptions: IThingOptions) {
+  constructor(thingOptions: IThingOptions) {
     super();
-    const { timeStamp } = thingOptions;
-    this.timeStamp = timeStamp;
-    this.options = getMergedOptions(thingDefaultConfig, thingOptions);
+    const { coordinate, ...otherOptions } = thingOptions;
+    this.coordinate = coordinate;
+    this.options = getMergedOptions(thingDefaultConfig, otherOptions);
   }
 
-  private updateSpeed(direction: 'x' | 'y', timeStamp: number) {
+  private getSpeedDiff(direction: 'x' | 'y', span: number): number {
+    let diff = 0;
     const speedField = direction === 'x' ? 'xSpeed' : 'ySpeed';
+    const maxSpeedField = direction === 'x' ? 'xMaxSpeed' : 'yMaxSpeed';
     const accelerationField = direction === 'x' ? 'xAcceleration' : 'yAcceleration';
-    if (this.options && this.options[speedField]) {
-      this.options[speedField] =
-        this.options[speedField] as number + (timeStamp - this.timeStamp) * (this.options[accelerationField] as number);
+    if (this.options) {
+      diff = span * (this.options[accelerationField] as number);
+      // Speed can not more than max speed;
+      if ((this.options[speedField] as number + diff) > (this.options[maxSpeedField] as number)) {
+        diff = (this.options[maxSpeedField] as number) - (this.options[speedField] as number);
+      }
     }
+    return diff;
   }
 
-  public update(timeStamp: number, modifiableThingConfig: IModifiableThingConfig) {
+  private updateProperties(span: number) {
+    // to second
+    const xSpeedDiff = this.getSpeedDiff('x', span);
+    const ySpeedDiff = this.getSpeedDiff('y', span);
+    if (this.options && this.coordinate && span) {
+      const xDistance = (this.options.xSpeed as number + xSpeedDiff / 2) * span;
+      const yDistance = (this.options.ySpeed as number + ySpeedDiff / 2) * span;
+      this.coordinate = [
+        this.coordinate[0] + xDistance,
+        this.coordinate[1] + yDistance
+      ]
+      this.options.xSpeed = this.options.xSpeed as number + xSpeedDiff;
+      this.options.ySpeed = this.options.ySpeed as number + ySpeedDiff;
+    }
+    return this;
+  }
+
+  public update(span: number, modifiableThingConfig?: IModifiableThingConfig) {
     if (this.options) {
-      this.options = getMergedOptions(this.options, modifiableThingConfig);
-      this.updateSpeed('x', timeStamp);
-      this.updateSpeed('y', timeStamp);
-      // this.updateCoordinate(timeStamp);
-      this.timeStamp = timeStamp;
+      if (modifiableThingConfig) this.options = getMergedOptions(this.options, modifiableThingConfig);
+      this.updateProperties(span);
     }
     return this;
   }
 
   public destroy() {
-    this.timeStamp = 0;
     this.options = null;
+    this.coordinate = null;
     super.destroy();
   }
 }

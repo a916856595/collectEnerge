@@ -52,8 +52,34 @@ export interface IIMageLoader extends IBaseEvent {
   destroy: () => void;
 }
 
-export interface IGlobe extends IBaseEvent {
+export interface IModifiableThingConfig {
+  xAcceleration?: number;
+  yAcceleration?: number;
+}
+
+export interface IThingConfig extends IModifiableThingConfig {
+  xSpeed?: number;
+  ySpeed?: number;
+  xMaxSpeed?: number;
+  yMaxSpeed?: number;
+}
+
+export interface IThingOptions extends IThingConfig {
+  coordinate: coordinateType;
+}
+
+export interface IThing extends IBaseEvent {
+  update: (span: number, config: IModifiableThingConfig) => this;
+  destroy: () => void;
+}
+
+export interface IGlobeOptions extends IThingOptions {
+  radius: number;
+  color?: string;
+}
+
+export interface IGlobe extends IThing {
   display: () => this;
-  update: (timeStamp: number) => this;
+  update: (span: number) => this;
   destroy: () => void;
 }
