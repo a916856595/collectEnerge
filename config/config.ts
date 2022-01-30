@@ -1,0 +1,1 @@
+export const VERTICAL_ACCELERATION = 10;  // vertical acceleration of thing

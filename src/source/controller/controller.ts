@@ -21,6 +21,7 @@ interface IControllerOptions {
   width?: string;
   height?: string;
   anchor?: canvasAnchorType; // operation area anchor, optional center / left / right / top / bottom.
+  rate?: number;
 }
 
 const CENTER = 'center';
@@ -103,10 +104,31 @@ class Controller extends BaseEvent implements IController {
 
   private setOperationAreaInfo() {
     if (this.canvas && this.options) {
+      let { width, height, anchor, rate } = this.options;
       const canvasSize = this.canvas.getSize();
-      const { width, height, anchor } = this.options;
       const canvasWidth = canvasSize.width;
       const canvasHeight = canvasSize.height;
+      const canvasRate = canvasWidth / canvasHeight;
+      const hundredPercentage = '100%';
+      // Transform rate to real width and height.
+      if (rate) {
+        const pixel = 'px';
+        if (rate > 1 && rate >= canvasRate) {
+          width = hundredPercentage;
+          height = 1 / rate * canvasWidth + pixel;
+        } else if (rate > 1 && rate < canvasRate) {
+          height = canvasHeight + pixel;
+          width = canvasHeight * rate + pixel;
+        } else if (rate < 1 && rate <= canvasRate) {
+          width = rate * canvasHeight + pixel;
+          height = hundredPercentage;
+        } else if (rate < 1 && rate > canvasRate) {
+          width = canvasWidth + pixel;
+          height = canvasWidth / rate + pixel;
+        } else if (rate === 1) {
+          width = height = Math.min(canvasWidth, canvasHeight) + pixel;
+        }
+      }
       const operationalWidth = this.operationalWidth = this.getContentLength(canvasSize.width, width);
       const operationalHeight = this.operationalHeight = this.getContentLength(canvasSize.height, height);
       const widthDiff = canvasWidth - operationalWidth;

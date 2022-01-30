@@ -8,6 +8,7 @@ interface ICollectEnergyOptions  {
   container: string;     // The dom element selector.
   width?: string;        // Operation area width, option unit is pixel or percent, default auto.
   height?: string;       // Operation area height, option unit is pixel or percent, default auto.
+  rate?: number;         // Operation area rate of with and height
   anchor?: canvasAnchorType;
 }
 
@@ -21,12 +22,14 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
       container,
       width,
       height,
+      rate,
       anchor
     } = collectEnergyOptions;
     this.canvas = new Canvas(container);
     this.controller = new Controller(this.canvas, {
       width,
       height,
+      rate,
       anchor
     });
     this.controller.on(LIFE_FINISH, (event: IObject) => {
