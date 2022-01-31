@@ -52,33 +52,33 @@ export interface IIMageLoader extends IBaseEvent {
   destroy: () => void;
 }
 
-export interface IModifiableThingConfig {
+export interface IModifiableStuffConfig {
   xAcceleration?: number;
   yAcceleration?: number;
 }
 
-export interface IThingConfig extends IModifiableThingConfig {
+export interface IStuffConfig extends IModifiableStuffConfig {
   xSpeed?: number;
   ySpeed?: number;
   xMaxSpeed?: number;
   yMaxSpeed?: number;
 }
 
-export interface IThingOptions extends IThingConfig {
+export interface IStuffOptions extends IStuffConfig {
   coordinate: coordinateType;
 }
 
-export interface IThing extends IBaseEvent {
-  update: (span: number, config: IModifiableThingConfig) => this;
+export interface IStuff extends IBaseEvent {
+  update: (span: number, config: IModifiableStuffConfig) => this;
   destroy: () => void;
 }
 
-export interface IGlobeOptions extends IThingOptions {
+export interface IGlobeOptions extends IStuffOptions {
   radius: number;
   color?: string;
 }
 
-export interface IGlobe extends IThing {
+export interface IGlobe extends IStuff {
   display: () => this;
   update: (span: number) => this;
   destroy: () => void;

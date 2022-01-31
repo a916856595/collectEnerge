@@ -1,12 +1,12 @@
-import { ICanvas, IGlobe, IGlobeOptions, IModifiableThingConfig } from '../declare/declare';
+import { ICanvas, IGlobe, IGlobeOptions, IModifiableStuffConfig } from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
-import Thing from './thing';
+import Stuff from './stuff';
 
 const globeDefaultOptions = {
   color: 'green'
 };
 
-class Globe extends Thing implements IGlobe {
+class Globe extends Stuff implements IGlobe {
   private canvas: ICanvas | null = null;
   private globeOptions: IGlobeOptions | null = null;
 
@@ -28,8 +28,8 @@ class Globe extends Thing implements IGlobe {
     this.globeOptions = getMergedOptions(globeDefaultOptions, globeOptions) as IGlobeOptions;
   }
 
-  public update(span: number, modifiableThingConfig?: IModifiableThingConfig) {
-    super.update(span, modifiableThingConfig);
+  public update(span: number, modifiableStuffConfig?: IModifiableStuffConfig) {
+    super.update(span, modifiableStuffConfig);
     return this;
   }
 

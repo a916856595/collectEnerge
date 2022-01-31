@@ -1,10 +1,10 @@
 import BaseEvent from '../base/event';
-import { coordinateType, IModifiableThingConfig, IThing, IThingConfig, IThingOptions } from '../declare/declare';
+import { coordinateType, IModifiableStuffConfig, IStuff, IStuffConfig, IStuffOptions } from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
 import { LIFT_MOVE } from '../constant/life';
 
 
-const thingDefaultConfig = {
+const stuffDefaultConfig = {
   xSpeed: 0,
   ySpeed: 0,
   xMaxSpeed: 0,
@@ -13,16 +13,16 @@ const thingDefaultConfig = {
   yAcceleration: 0,
 };
 
-class Thing extends BaseEvent implements IThing {
+class Stuff extends BaseEvent implements IStuff {
   public coordinate: coordinateType | null;
-  private options: IThingConfig | null = null;
+  private options: IStuffConfig | null = null;
 
 
-  constructor(thingOptions: IThingOptions) {
+  constructor(stuffOptions: IStuffOptions) {
     super();
-    const { coordinate, ...otherOptions } = thingOptions;
+    const { coordinate, ...otherOptions } = stuffOptions;
     this.coordinate = coordinate;
-    this.options = getMergedOptions(thingDefaultConfig, otherOptions);
+    this.options = getMergedOptions(stuffDefaultConfig, otherOptions);
   }
 
   private getSpeedDiff(direction: 'x' | 'y', span: number): number {
@@ -65,9 +65,9 @@ class Thing extends BaseEvent implements IThing {
     return this;
   }
 
-  public update(span: number, modifiableThingConfig?: IModifiableThingConfig) {
+  public update(span: number, modifiableStuffConfig?: IModifiableStuffConfig) {
     if (this.options) {
-      if (modifiableThingConfig) this.options = getMergedOptions(this.options, modifiableThingConfig);
+      if (modifiableStuffConfig) this.options = getMergedOptions(this.options, modifiableStuffConfig);
       this.updateProperties(span);
     }
     return this;
@@ -80,4 +80,4 @@ class Thing extends BaseEvent implements IThing {
   }
 }
 
-export default Thing;
+export default Stuff;
