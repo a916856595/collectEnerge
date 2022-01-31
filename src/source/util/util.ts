@@ -14,3 +14,10 @@ class Message implements IMessage {
 }
 
 export const message = new Message();
+
+const getIdGenerate = (): (() => string) => {
+  let index = 0;
+  return () => ++index + '';
+}
+
+export const generateId: () => string = getIdGenerate();

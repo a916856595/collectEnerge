@@ -9,14 +9,15 @@ import {
   IIMageLoader,
   IObject
 } from '../declare/declare';
-import { LIFE_ERROR, LIFE_FINISH } from '../constant/life';
+import { LIFE_ERROR, LIFE_FINISH, LIFT_MOVE } from '../constant/life';
 import ImageLoader from '../component/imageLoader';
 import globeConfig from '../../../config/uiConfig';
 import { getMergedOptions } from '../util/methods';
 import { RESIZE } from '../constant/baseEvent';
 import Background from '../ui/background';
 import Globe from '../ui/globe';
-import { VERTICAL_ACCELERATION } from '../../../config/config';
+import { GLOBE_RADIUS, VERTICAL_ACCELERATION } from '../../../config/config';
+import { generateId } from '../util/util';
 
 interface IControllerOptions {
   width?: string;
@@ -162,39 +163,57 @@ class Controller extends BaseEvent implements IController {
     }
   }
 
+  private displayBackground() {
+    if (this.canvas && this.uiComponents) {
+      let background = this.uiComponents.background;
+      if (!background) {
+        background = this.uiComponents.background = new Background(this.canvas, {
+          backgroundType: 'color',
+          backgroundValue: 'black',
+          foregroundType: 'image',
+          foregroundValue: 'background',
+          foregroundCoordinates: this.operationalAreaCoordinates as coordinatesType
+        });
+      } else background.update(this.operationalAreaCoordinates);
+      background.display();
+    }
+  }
+
   private frame(): number {
     return requestAnimationFrame(() => {
       const timeStamp = Date.now();
       const span = (timeStamp - this.timeStamp) / 1000;
       if (this.canvas && this.operationalAreaCoordinates && this.uiComponents) {
         this.canvas.clear();
-        let background = this.uiComponents.background;
-        if (!background) {
-          background = this.uiComponents.background = new Background(this.canvas, {
-            backgroundType: 'color',
-            backgroundValue: 'black',
-            foregroundType: 'image',
-            foregroundValue: 'background',
-            foregroundCoordinates: this.operationalAreaCoordinates
-          });
-        } else background.update(this.operationalAreaCoordinates);
-        background.display();
-
+        this.displayBackground();
         if (!this.uiComponents.globe) {
           this.uiComponents.globe = new Globe(this.canvas, {
             coordinate: [80, 80],
-            radius: 30,
+            radius: GLOBE_RADIUS,
             xSpeed: 0,
-            ySpeed: 0,
+            ySpeed: 200,
             xMaxSpeed: 30,
             yMaxSpeed: 600,
             xAcceleration: 0,
             yAcceleration: VERTICAL_ACCELERATION
           });
+          this.uiComponents.globe.on(LIFT_MOVE, (event: IObject) => {
+            const { newCoordinate } = event;
+            if (
+              this.uiComponents &&
+              this.operationalAreaCoordinates &&
+              this.operationalAreaCoordinates[1] &&
+              (newCoordinate[1] - GLOBE_RADIUS) > (this.operationalAreaCoordinates[1][1] as number)
+            ) {
+              this.uiComponents.globe.destroy();
+              this.uiComponents.globe = null;
+            }
+          })
           this.uiComponents.globe.display();
         } else {
           this.uiComponents.globe.update(span);
-          this.uiComponents.globe.display();
+          // After updated, component may be removed by move event.
+          this.uiComponents.globe && this.uiComponents.globe.display();
         }
 
       }

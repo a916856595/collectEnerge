@@ -1,6 +1,7 @@
 import BaseEvent from '../base/event';
 import { coordinateType, IModifiableThingConfig, IThing, IThingConfig, IThingOptions } from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
+import { LIFT_MOVE } from '../constant/life';
 
 
 const thingDefaultConfig = {
@@ -46,12 +47,20 @@ class Thing extends BaseEvent implements IThing {
     if (this.options && this.coordinate && span) {
       const xDistance = (this.options.xSpeed as number + xSpeedDiff / 2) * span;
       const yDistance = (this.options.ySpeed as number + ySpeedDiff / 2) * span;
+      const originCoordinate = this.coordinate.slice();
       this.coordinate = [
         this.coordinate[0] + xDistance,
         this.coordinate[1] + yDistance
       ]
+      const newCoordinate = this.coordinate.slice();
       this.options.xSpeed = this.options.xSpeed as number + xSpeedDiff;
       this.options.ySpeed = this.options.ySpeed as number + ySpeedDiff;
+      if (xDistance !== 0 || yDistance !== 0) {
+        this.fire(LIFT_MOVE, {
+          originCoordinate,
+          newCoordinate
+        });
+      }
     }
     return this;
   }
