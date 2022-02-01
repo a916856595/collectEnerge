@@ -2,23 +2,27 @@ import BaseEvent from '../base/event';
 import {
   canvasAnchorType,
   controllerStateType,
-  coordinatesType, coordinateType,
+  coordinatesType,
+  coordinateType,
+  handlerType,
   IBaseEvent,
   ICanvas,
   IController,
   IGlobe,
   IIMageLoader,
-  IObject
+  IObject,
+  IStuffInstance
 } from '../declare/declare';
 import { LIFE_ERROR, LIFE_FINISH, LIFT_MOVE } from '../constant/life';
 import ImageLoader from '../component/imageLoader';
 import globeConfig from '../../../config/uiConfig';
 import { getMergedOptions } from '../util/methods';
-import { RESIZE } from '../constant/baseEvent';
+import { CLICK, RESIZE } from '../constant/baseEvent';
 import Background from '../ui/background';
 import Globe from '../ui/globe';
 import { GLOBE_RADIUS, VERTICAL_ACCELERATION } from '../../../config/config';
 import { generateId } from '../util/util';
+import UIConfig from '../../../config/uiConfig';
 
 interface IControllerOptions {
   width?: string;
@@ -27,8 +31,10 @@ interface IControllerOptions {
   rate?: number;
 }
 interface IGlobeInfo {
+  id: string;
+  zIndex: number;
   globe: IGlobe | undefined,
-  state: 'destroyed' | 'exist' | 'prepare'
+  state: 'destroyed' | 'exist' | 'prepare',
 }
 
 const EXIST = 'exist';
@@ -51,6 +57,8 @@ class Controller extends BaseEvent implements IController {
   private frameSign: number = 0;
   private timeStamp: number = 0;
   private uiComponents: IObject | null = { background: undefined, globes: {} };
+  private canvasEventInfoMap: IObject | null = { [CLICK]: {} };
+  private eventReferenceMap: IObject | null = {};
 
   constructor(canvas: ICanvas, controllerOptions: IControllerOptions = {}) {
     super();
@@ -70,8 +78,15 @@ class Controller extends BaseEvent implements IController {
         this.setOperationAreaInfo();
         if (this.canvas) {
           if (this.imageLoader) this.canvas.setImageLoader(this.imageLoader);
-          // Calculate operation area when canvas resized.
-          this.canvas.on(RESIZE, this.setOperationAreaInfo.bind(this));
+          if (this.eventReferenceMap) {
+            // Calculate operation area when canvas resized.
+            this.eventReferenceMap[RESIZE] = this.setOperationAreaInfo.bind(this);
+            this.eventReferenceMap[CLICK] = (event: IObject) => {
+              this.triggerCanvasEvent(CLICK, event);
+            };
+            this.canvas.on(RESIZE, this.eventReferenceMap[RESIZE]);
+            this.canvas.on(CLICK, this.eventReferenceMap[CLICK]);
+          }
         }
         this.fire(LIFE_FINISH, event);
       })
@@ -170,6 +185,27 @@ class Controller extends BaseEvent implements IController {
     }
   }
 
+  private changeStuffEventMapState(eventType: string, stuff: IStuffInstance, isRemove: boolean = false) {
+    if (this.canvasEventInfoMap) {
+      if (!this.canvasEventInfoMap) (this.canvasEventInfoMap[eventType] as IObject) = {};
+      if (isRemove) delete this.canvasEventInfoMap[eventType][stuff.id];
+      else this.canvasEventInfoMap[eventType][stuff.id] = stuff;
+    }
+  }
+
+  private triggerCanvasEvent(eventType: string, event: IObject) {
+    const coordinate: coordinateType = [event.x, event.y];
+    if (this.canvasEventInfoMap && this.canvasEventInfoMap[eventType]) {
+      // @ts-ignore
+      Object.values(this.canvasEventInfoMap[eventType]).some((stuff: IStuffInstance) => {
+        if (stuff.judgeHasBeenTouch(coordinate, UIConfig.touchBuffer)) {
+          stuff.fire(eventType, { coordinate });
+          return true;
+        }
+      });
+    }
+  }
+
   private displayBackground() {
     if (this.canvas && this.uiComponents) {
       let background = this.uiComponents.background;
@@ -209,7 +245,9 @@ class Controller extends BaseEvent implements IController {
       if (isNeedGlobe) {
         const id = generateId();
         this.uiComponents.globes[id] = {
-          state: PREPARE
+          id,
+          state: PREPARE,
+          zIndex: Number(id),
         };
       }
     }
@@ -218,17 +256,16 @@ class Controller extends BaseEvent implements IController {
   private displayGlobes(span: number): this {
     if (this.uiComponents && this.uiComponents.globes) {
       // @ts-ignore
-      Object.entries(this.uiComponents.globes).forEach((idAndGlobeInfo: [string, IGlobeInfo]) => {
-        const [id, globeInfo] = idAndGlobeInfo;
+      Object.values(this.uiComponents.globes).forEach((globeInfo: IGlobeInfo) => {
         if (globeInfo.state === PREPARE && this.canvas) {
           const globe = new Globe(this.canvas, {
-            id,
+            id: globeInfo.id,
             coordinate: this.generateGlobeCoordinate(),
             radius: GLOBE_RADIUS,
             xSpeed: 0,
-            ySpeed: 200,
-            xMaxSpeed: 30,
-            yMaxSpeed: 600,
+            ySpeed: 50,
+            xMaxSpeed: 0,
+            yMaxSpeed: 100,
             xAcceleration: 0,
             yAcceleration: VERTICAL_ACCELERATION
           });
@@ -241,9 +278,13 @@ class Controller extends BaseEvent implements IController {
               (newCoordinate[1] - GLOBE_RADIUS) > (this.operationalAreaCoordinates[1][1] as number)
             ) {
               globe.destroy();
-              delete this.uiComponents.globes[id];
+              delete this.uiComponents.globes[globeInfo.id];
             }
           });
+          globe.on(CLICK, () => {
+            console.log('click globe')
+          });
+          this.changeStuffEventMapState(CLICK, globe);
           globe.display();
           globeInfo.globe = globe;
           globeInfo.state = EXIST;
@@ -297,6 +338,14 @@ class Controller extends BaseEvent implements IController {
       cancelAnimationFrame(this.frameSign);
     }
     if (this.canvas) {
+      // clear events
+      if (this.eventReferenceMap) {
+        Object.entries(this.eventReferenceMap).forEach((eventTypeAndHandler: [string, handlerType]) => {
+          const [eventType, handler] = eventTypeAndHandler;
+          this.canvas && this.canvas.off(eventType, handler);
+        });
+        this.eventReferenceMap = null;
+      }
       this.canvas.destroy();
       this.canvas = null;
     }

@@ -84,4 +84,10 @@ export interface IGlobe extends IStuff {
   display: () => this;
   update: (span: number) => this;
   destroy: () => void;
+  judgeHasBeenTouch: (coordinate: coordinateType, buffer?: number) => boolean;
+}
+
+export  interface IStuffInstance extends IBaseEvent {
+  id: string;
+  judgeHasBeenTouch: (coordinate: coordinateType, buffer?: number) => boolean;
 }

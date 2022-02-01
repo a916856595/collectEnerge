@@ -1,8 +1,8 @@
 import './canvas.scss';
-import { coordinatesType, coordinateType, ICanvas, IIMageLoader, IObject } from '../declare/declare';
+import { coordinatesType, coordinateType, handlerType, ICanvas, IIMageLoader, IObject } from '../declare/declare';
 import BaseEvent from './event';
 import { LIFE_ERROR, LIFE_FINISH } from '../constant/life';
-import { RESIZE } from '../constant/baseEvent';
+import { CLICK, RESIZE } from '../constant/baseEvent';
 
 class Canvas extends BaseEvent implements ICanvas {
   private container: HTMLElement | null;
@@ -112,6 +112,24 @@ class Canvas extends BaseEvent implements ICanvas {
       this.context.arc(coordinate[0], coordinate[1], radius, 0, 2 * Math.PI);
       this.context.fillStyle = fillColor;
       this.context.fill();
+    }
+    return this;
+  }
+
+  public on(eventType: string, handler: handlerType) {
+    if (eventType === CLICK && this.element) {
+      this.element.addEventListener(eventType, handler);
+    } else {
+      super.on(eventType, handler);
+    }
+    return this;
+  }
+
+  public off(eventType: string, handler?: handlerType) {
+    if (eventType === CLICK && handler && this.element) {
+      this.element.removeEventListener(eventType, handler);
+    } else {
+      super.off(eventType, handler);
     }
     return this;
   }
