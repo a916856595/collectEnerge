@@ -6,6 +6,7 @@ import {
   IBaseEvent,
   ICanvas,
   IController,
+  IGlobe,
   IIMageLoader,
   IObject
 } from '../declare/declare';
@@ -25,7 +26,13 @@ interface IControllerOptions {
   anchor?: canvasAnchorType; // operation area anchor, optional center / left / right / top / bottom.
   rate?: number;
 }
+interface IGlobeInfo {
+  globe: IGlobe | undefined,
+  state: 'destroyed' | 'exist' | 'prepare'
+}
 
+const EXIST = 'exist';
+const PREPARE = 'prepare';
 const CENTER = 'center';
 const controllerDefaultOptions = {
   width: 'auto',
@@ -43,7 +50,7 @@ class Controller extends BaseEvent implements IController {
   private operationalHeight: number = 0;
   private frameSign: number = 0;
   private timeStamp: number = 0;
-  private uiComponents: IObject | null = {};
+  private uiComponents: IObject | null = { background: undefined, globes: {} };
 
   constructor(canvas: ICanvas, controllerOptions: IControllerOptions = {}) {
     super();
@@ -179,16 +186,44 @@ class Controller extends BaseEvent implements IController {
     }
   }
 
-  private frame(): number {
-    return requestAnimationFrame(() => {
-      const timeStamp = Date.now();
-      const span = (timeStamp - this.timeStamp) / 1000;
-      if (this.canvas && this.operationalAreaCoordinates && this.uiComponents) {
-        this.canvas.clear();
-        this.displayBackground();
-        if (!this.uiComponents.globe) {
-          this.uiComponents.globe = new Globe(this.canvas, {
-            coordinate: [80, 80],
+  private generateGlobeCoordinate(): coordinateType {
+    let coordinate: coordinateType = [0, 0];
+    if (this.operationalAreaCoordinates && this.operationalAreaCoordinates[0] && this.operationalAreaCoordinates[1]) {
+      const range = this.operationalAreaCoordinates[1][0] - GLOBE_RADIUS - this.operationalAreaCoordinates[0][0];
+      coordinate = [
+        this.operationalAreaCoordinates[0][0] + GLOBE_RADIUS + Math.round(Math.random() * range),
+        this.operationalAreaCoordinates[0][1] - GLOBE_RADIUS
+      ];
+    }
+    return coordinate;
+  }
+
+  private updateGlobesInfo() {
+    if (this.uiComponents && this.uiComponents.globes) {
+      const globesCollection: IGlobeInfo[] = Object.values(this.uiComponents.globes);
+      const isNeedGlobe = globesCollection.every((globeInfo: IGlobeInfo) => {
+        if (globeInfo.globe && globeInfo.globe.coordinate && this.operationalAreaCoordinates && this.operationalAreaCoordinates[0]) {
+          return globeInfo.globe.coordinate[1] - GLOBE_RADIUS > this.operationalAreaCoordinates[0][1];
+        }
+      });
+      if (isNeedGlobe) {
+        const id = generateId();
+        this.uiComponents.globes[id] = {
+          state: PREPARE
+        };
+      }
+    }
+  }
+
+  private displayGlobes(span: number): this {
+    if (this.uiComponents && this.uiComponents.globes) {
+      // @ts-ignore
+      Object.entries(this.uiComponents.globes).forEach((idAndGlobeInfo: [string, IGlobeInfo]) => {
+        const [id, globeInfo] = idAndGlobeInfo;
+        if (globeInfo.state === PREPARE && this.canvas) {
+          const globe = new Globe(this.canvas, {
+            id,
+            coordinate: this.generateGlobeCoordinate(),
             radius: GLOBE_RADIUS,
             xSpeed: 0,
             ySpeed: 200,
@@ -197,7 +232,7 @@ class Controller extends BaseEvent implements IController {
             xAcceleration: 0,
             yAcceleration: VERTICAL_ACCELERATION
           });
-          this.uiComponents.globe.on(LIFT_MOVE, (event: IObject) => {
+          globe.on(LIFT_MOVE, (event: IObject) => {
             const { newCoordinate } = event;
             if (
               this.uiComponents &&
@@ -205,16 +240,33 @@ class Controller extends BaseEvent implements IController {
               this.operationalAreaCoordinates[1] &&
               (newCoordinate[1] - GLOBE_RADIUS) > (this.operationalAreaCoordinates[1][1] as number)
             ) {
-              this.uiComponents.globe.destroy();
-              this.uiComponents.globe = null;
+              globe.destroy();
+              delete this.uiComponents.globes[id];
             }
-          })
-          this.uiComponents.globe.display();
-        } else {
-          this.uiComponents.globe.update(span);
+          });
+          globe.display();
+          globeInfo.globe = globe;
+          globeInfo.state = EXIST;
+        } else if (globeInfo.state === EXIST && globeInfo.globe) {
+          const globe = globeInfo.globe;
+          globe.update(span);
           // After updated, component may be removed by move event.
-          this.uiComponents.globe && this.uiComponents.globe.display();
+          globe && globe.display();
         }
+      });
+    }
+    return this;
+  }
+
+  private frame(): number {
+    return requestAnimationFrame(() => {
+      const timeStamp = Date.now();
+      const span = (timeStamp - this.timeStamp) / 1000;
+      if (this.canvas && this.operationalAreaCoordinates && this.uiComponents) {
+        this.canvas.clear();
+        this.displayBackground();
+        this.updateGlobesInfo();
+        this.displayGlobes(span);
 
       }
       if (this.state === 'running') this.frame();
@@ -241,6 +293,9 @@ class Controller extends BaseEvent implements IController {
   }
 
   public destroy() {
+    if (this.frameSign) {
+      cancelAnimationFrame(this.frameSign);
+    }
     if (this.canvas) {
       this.canvas.destroy();
       this.canvas = null;

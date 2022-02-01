@@ -40,7 +40,7 @@ export interface IController extends IBaseEvent {
   destroy: () => void;
 }
 
-export type controllerStateType = 'pausing' | 'running' | 'ended' | 'preparation' | 'waiting';
+export type controllerStateType = 'pausing' | 'running' | 'ended' | 'prepare' | 'waiting';
 
 export interface IObject {
   [key: string]: any;
@@ -69,11 +69,13 @@ export interface IStuffOptions extends IStuffConfig {
 }
 
 export interface IStuff extends IBaseEvent {
+  coordinate: coordinateType | null;
   update: (span: number, config: IModifiableStuffConfig) => this;
   destroy: () => void;
 }
 
 export interface IGlobeOptions extends IStuffOptions {
+  id: string;
   radius: number;
   color?: string;
 }

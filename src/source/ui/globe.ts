@@ -9,6 +9,14 @@ const globeDefaultOptions = {
 class Globe extends Stuff implements IGlobe {
   private canvas: ICanvas | null = null;
   private globeOptions: IGlobeOptions | null = null;
+  private id: string;
+
+  constructor(canvas: ICanvas, globeOptions: IGlobeOptions) {
+    super(globeOptions);
+    this.canvas = canvas;
+    this.id = globeOptions.id;
+    this.globeOptions = getMergedOptions(globeDefaultOptions, globeOptions) as IGlobeOptions;
+  }
 
   public display() {
     if (
@@ -16,16 +24,10 @@ class Globe extends Stuff implements IGlobe {
       this.globeOptions &&
       this.globeOptions.radius &&
       this.coordinate
-  ) {
+    ) {
       this.canvas.drawFillCircle(this.coordinate, this.globeOptions.radius, this.globeOptions.color as string);
     }
     return this;
-  }
-
-  constructor(canvas: ICanvas, globeOptions: IGlobeOptions) {
-    super(globeOptions);
-    this.canvas = canvas;
-    this.globeOptions = getMergedOptions(globeDefaultOptions, globeOptions) as IGlobeOptions;
   }
 
   public update(span: number, modifiableStuffConfig?: IModifiableStuffConfig) {
@@ -34,6 +36,7 @@ class Globe extends Stuff implements IGlobe {
   }
 
   public destroy() {
+    this.id = '';
     this.globeOptions = null;
     this.canvas = null;
     super.destroy();
