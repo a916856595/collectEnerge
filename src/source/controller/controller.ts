@@ -36,6 +36,10 @@ interface IGlobeInfo {
   globe: IGlobe | undefined,
   state: 'destroyed' | 'exist' | 'prepare',
 }
+interface IStuffInfo {
+  stuff: IStuffInstance;
+  zIndex: number;
+}
 
 const EXIST = 'exist';
 const PREPARE = 'prepare';
@@ -185,24 +189,34 @@ class Controller extends BaseEvent implements IController {
     }
   }
 
-  private changeStuffEventMapState(eventType: string, stuff: IStuffInstance, isRemove: boolean = false) {
+  private changeStuffEventMapState(eventType: string, stuffInfo: IStuffInfo, isRemove: boolean = false) {
     if (this.canvasEventInfoMap) {
       if (!this.canvasEventInfoMap) (this.canvasEventInfoMap[eventType] as IObject) = {};
-      if (isRemove) delete this.canvasEventInfoMap[eventType][stuff.id];
-      else this.canvasEventInfoMap[eventType][stuff.id] = stuff;
+      if (isRemove) delete this.canvasEventInfoMap[eventType][stuffInfo.stuff.id];
+      else {
+        this.canvasEventInfoMap[eventType][stuffInfo.stuff.id] = {
+          stuff: stuffInfo.stuff,
+          zIndex: Number(stuffInfo.stuff.id)
+        };
+      }
     }
   }
 
   private triggerCanvasEvent(eventType: string, event: IObject) {
     const coordinate: coordinateType = [event.x, event.y];
     if (this.canvasEventInfoMap && this.canvasEventInfoMap[eventType]) {
+      let target: { stuff: IStuffInstance | null, zIndex: number } = { stuff: null, zIndex: -1 };
       // @ts-ignore
-      Object.values(this.canvasEventInfoMap[eventType]).some((stuff: IStuffInstance) => {
-        if (stuff.judgeHasBeenTouch(coordinate, UIConfig.touchBuffer)) {
-          stuff.fire(eventType, { coordinate });
+      Object.values(this.canvasEventInfoMap[eventType]).some((stuffInfo: IStuffInfo) => {
+        const { stuff, zIndex } = stuffInfo;
+        if (stuff.judgeHasBeenTouch(coordinate, UIConfig.touchBuffer) && zIndex > target.zIndex) {
+          target = { stuff, zIndex };
           return true;
         }
       });
+      if (target && target.stuff) {
+        target.stuff.fire(eventType, { coordinate });
+      }
     }
   }
 
@@ -282,9 +296,12 @@ class Controller extends BaseEvent implements IController {
             }
           });
           globe.on(CLICK, () => {
-            console.log('click globe')
+            globe.destroy();
+            if (this.uiComponents) {
+              delete this.uiComponents.globes[globeInfo.id];
+            }
           });
-          this.changeStuffEventMapState(CLICK, globe);
+          this.changeStuffEventMapState(CLICK, { stuff: globe, zIndex: Number(globe.id) });
           globe.display();
           globeInfo.globe = globe;
           globeInfo.state = EXIST;
