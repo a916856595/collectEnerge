@@ -277,9 +277,9 @@ class Controller extends BaseEvent implements IController {
             coordinate: this.generateGlobeCoordinate(),
             radius: GLOBE_RADIUS,
             xSpeed: 0,
-            ySpeed: 50,
+            ySpeed: 100,
             xMaxSpeed: 0,
-            yMaxSpeed: 100,
+            yMaxSpeed: 300,
             xAcceleration: 0,
             yAcceleration: VERTICAL_ACCELERATION
           });

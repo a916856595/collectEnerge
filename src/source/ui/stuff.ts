@@ -17,7 +17,6 @@ class Stuff extends BaseEvent implements IStuff {
   public coordinate: coordinateType | null;
   private options: IStuffConfig | null = null;
 
-
   constructor(stuffOptions: IStuffOptions) {
     super();
     const { coordinate, ...otherOptions } = stuffOptions;
