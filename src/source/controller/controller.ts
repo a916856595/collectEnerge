@@ -44,6 +44,7 @@ interface IStuffInfo {
 const EXIST = 'exist';
 const PREPARE = 'prepare';
 const CENTER = 'center';
+const RUNNING = 'running';
 const controllerDefaultOptions = {
   width: 'auto',
   height: 'auto',
@@ -327,7 +328,7 @@ class Controller extends BaseEvent implements IController {
         this.displayGlobes(span);
 
       }
-      if (this.state === 'running') this.frame();
+      if (this.state === RUNNING) this.frame();
       this.timeStamp = timeStamp;
     });
   }
@@ -340,7 +341,7 @@ class Controller extends BaseEvent implements IController {
   }
 
   public start(): this {
-    this.state = 'running'
+    this.state = RUNNING
     this.beginFrame();
     return this;
   }
