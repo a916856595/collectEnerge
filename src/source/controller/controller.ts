@@ -11,6 +11,7 @@ import {
   IGlobe,
   IIMageLoader,
   IObject,
+  IPop,
   IStuffInstance
 } from '../declare/declare';
 import { LIFE_ERROR, LIFE_FINISH, LIFT_MOVE } from '../constant/life';
@@ -23,6 +24,7 @@ import Globe from '../ui/globe';
 import { GLOBE_RADIUS, VERTICAL_ACCELERATION } from '../../../config/config';
 import { generateId } from '../util/util';
 import UIConfig from '../../../config/uiConfig';
+import Pop from '../ui/pop';
 
 interface IControllerOptions {
   width?: string;
@@ -33,7 +35,8 @@ interface IControllerOptions {
 interface IGlobeInfo {
   id: string;
   zIndex: number;
-  globe: IGlobe | undefined,
+  globe?: IGlobe;
+  pop?: IPop;
   state: 'destroyed' | 'exist' | 'prepare',
 }
 interface IStuffInfo {
@@ -41,6 +44,7 @@ interface IStuffInfo {
   zIndex: number;
 }
 
+const DESTROYED = 'destroyed';
 const EXIST = 'exist';
 const PREPARE = 'prepare';
 const CENTER = 'center';
@@ -278,9 +282,9 @@ class Controller extends BaseEvent implements IController {
             coordinate: this.generateGlobeCoordinate(),
             radius: GLOBE_RADIUS,
             xSpeed: 0,
-            ySpeed: 100,
+            ySpeed: 50,
             xMaxSpeed: 0,
-            yMaxSpeed: 300,
+            yMaxSpeed: 50,
             xAcceleration: 0,
             yAcceleration: VERTICAL_ACCELERATION
           });
@@ -296,10 +300,24 @@ class Controller extends BaseEvent implements IController {
               delete this.uiComponents.globes[globeInfo.id];
             }
           });
-          globe.on(CLICK, () => {
-            globe.destroy();
+          globe.on(CLICK, (event: IObject) => {
             if (this.uiComponents) {
-              delete this.uiComponents.globes[globeInfo.id];
+              if (this.canvas && globeInfo.globe) {
+                const pop = new Pop(this.canvas,{
+                  coordinate: globeInfo.globe.coordinate as coordinateType,
+                  during: 0.5,
+                  radius: GLOBE_RADIUS,
+                  distance: GLOBE_RADIUS * 2,
+                  background: 'green'
+                });
+                pop.on(LIFE_FINISH, () => {
+                  if (this.uiComponents) delete this.uiComponents.globes[globeInfo.id];
+                });
+                globeInfo.pop = pop;
+              }
+              globe.destroy();
+              globeInfo.state = DESTROYED;
+              globeInfo.globe = undefined;
             }
           });
           this.changeStuffEventMapState(CLICK, { stuff: globe, zIndex: Number(globe.id) });
@@ -311,6 +329,9 @@ class Controller extends BaseEvent implements IController {
           globe.update(span);
           // After updated, component may be removed by move event.
           globe && globe.display();
+        } else if (globeInfo.state === DESTROYED && globeInfo.pop) {
+          // After updated, component may be removed by move event.
+          globeInfo.pop && globeInfo.pop.display();
         }
       });
     }

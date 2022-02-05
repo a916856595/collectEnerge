@@ -87,7 +87,7 @@ export interface IGlobe extends IStuff {
   judgeHasBeenTouch: (coordinate: coordinateType, buffer?: number) => boolean;
 }
 
-export interface IPopup extends IStuff {
+export interface IPop extends IStuff {
   display: () => this;
   destroy: () => void;
 }
