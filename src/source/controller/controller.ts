@@ -79,7 +79,7 @@ class Controller extends BaseEvent implements IController {
       const [name, url] = nameAndUrl;
       if (this.imageLoader) this.imageLoader.load(name, url);
     });
-    const promiseList = [ this.getPromise(this.imageLoader), this.getPromise(this.canvas)];
+    const promiseList = [this.getPromise(this.canvas)];
     // Fire life cycle.
     Promise.all(promiseList)
       .then((event: IObject) => {
@@ -305,10 +305,12 @@ class Controller extends BaseEvent implements IController {
               if (this.canvas && globeInfo.globe) {
                 const pop = new Pop(this.canvas,{
                   coordinate: globeInfo.globe.coordinate as coordinateType,
-                  during: 0.5,
-                  radius: GLOBE_RADIUS,
+                  during: 0.3,
+                  radius: GLOBE_RADIUS / 2,
                   distance: GLOBE_RADIUS * 2,
-                  background: 'green'
+                  buffer: GLOBE_RADIUS / 2,
+                  background: 'green',
+                  count: 9
                 });
                 pop.on(LIFE_FINISH, () => {
                   if (this.uiComponents) delete this.uiComponents.globes[globeInfo.id];
