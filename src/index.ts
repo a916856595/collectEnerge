@@ -17,6 +17,10 @@ collectEnergy.on('finish', (event) => {
   console.log('ready', event.message);
 
   collectEnergy.start();
+
+  // setTimeout(() => {
+  //   collectEnergy.pause()
+  // }, 2000)
 });
 
 

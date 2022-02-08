@@ -1,8 +1,15 @@
 import Canvas from './base/canvas';
 import Controller from './controller/controller';
-import { ICollectEnergy, ICanvas, IController, IObject, canvasAnchorType } from './declare/declare';
+import {
+  ICollectEnergy,
+  ICanvas,
+  IController,
+  IObject,
+  canvasAnchorType,
+  stateType
+} from './declare/declare';
 import BaseEvent from './base/event';
-import { LIFE_ERROR, LIFE_FINISH } from './constant/life';
+import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH } from './constant/life';
 
 interface ICollectEnergyOptions  {
   container: string;     // The dom element selector.
@@ -12,9 +19,16 @@ interface ICollectEnergyOptions  {
   anchor?: canvasAnchorType;
 }
 
+const RUNNING = 'running';
+const PAUSING = 'pausing';
+const CHANGING = 'changing';
+
 class CollectEnergy extends BaseEvent implements ICollectEnergy {
   private canvas: ICanvas | null;
   private controller: IController | null;
+  private state: stateType = 'waiting'; // 游戏状态
+  private frameSign: number = 0;
+  private timeStamp: number = 0;
 
   constructor(collectEnergyOptions: ICollectEnergyOptions) {
     super();
@@ -40,13 +54,43 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
     });
   }
 
+  private changeState(state: stateType) {
+    this.state = state;
+    if (this.controller) {
+      this.controller.fire(LIFE_CHANGE, { state });
+    }
+  }
+
+  private frame(): number {
+    return requestAnimationFrame(() => {
+      if (this.canvas) this.canvas.clear();
+      const timeStamp = Date.now();
+      const span = (timeStamp - this.timeStamp) / 1000;
+      if (this.controller) this.controller.frame(span, this.state === RUNNING);
+      this.frame();
+      this.timeStamp = timeStamp;
+    });
+  }
+
+  private beginFrame() {
+    this.cancelFrame();
+    this.frameSign = this.frame();
+  }
+
+  private cancelFrame() {
+    if (this.frameSign) {
+      cancelAnimationFrame(this.frameSign);
+    }
+  }
+
   public start() {
-    if (this.controller) this.controller.start();
+    this.changeState(RUNNING);
+    this.beginFrame();
     return this;
   }
 
   public pause() {
-    if (this.controller) this.controller.pause();
+    this.changeState(PAUSING);
     return this;
   }
 

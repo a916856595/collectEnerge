@@ -1,7 +1,7 @@
 import BaseEvent from '../base/event';
 import { coordinateType, IModifiableStuffConfig, IStuff, IStuffConfig, IStuffOptions } from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
-import { LIFT_MOVE } from '../constant/life';
+import { LIFE_MOVE } from '../constant/life';
 
 
 const stuffDefaultConfig = {
@@ -55,7 +55,7 @@ class Stuff extends BaseEvent implements IStuff {
       this.options.xSpeed = this.options.xSpeed as number + xSpeedDiff;
       this.options.ySpeed = this.options.ySpeed as number + ySpeedDiff;
       if (xDistance !== 0 || yDistance !== 0) {
-        this.fire(LIFT_MOVE, {
+        this.fire(LIFE_MOVE, {
           originCoordinate,
           newCoordinate
         });

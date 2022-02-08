@@ -35,12 +35,11 @@ export interface ICanvas extends IBaseEvent {
 }
 
 export interface IController extends IBaseEvent {
-  start: () => this;
-  pause: () => this;
+  frame: (span: number, isUpdateGlobes: boolean) => void;
   destroy: () => void;
 }
 
-export type controllerStateType = 'pausing' | 'running' | 'ended' | 'prepare' | 'waiting';
+export type stateType = 'pausing' | 'running' | 'ended' | 'preparing' | 'waiting' | 'changing';
 
 export interface IObject {
   [key: string]: any;
@@ -95,4 +94,8 @@ export interface IPop extends IStuff {
 export interface IStuffInstance extends IBaseEvent {
   id: string;
   judgeHasBeenTouch: (coordinate: coordinateType, buffer?: number) => boolean;
+}
+
+export interface IInterface extends IBaseEvent {
+  destroy: () => void;
 }

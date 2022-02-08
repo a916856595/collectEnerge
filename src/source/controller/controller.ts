@@ -1,7 +1,6 @@
 import BaseEvent from '../base/event';
 import {
   canvasAnchorType,
-  controllerStateType,
   coordinatesType,
   coordinateType,
   handlerType,
@@ -12,9 +11,10 @@ import {
   IIMageLoader,
   IObject,
   IPop,
-  IStuffInstance
+  IStuffInstance,
+  stateType
 } from '../declare/declare';
-import { LIFE_ERROR, LIFE_FINISH, LIFT_MOVE } from '../constant/life';
+import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_MOVE } from '../constant/life';
 import ImageLoader from '../component/imageLoader';
 import globeConfig from '../../../config/uiConfig';
 import { getMergedOptions } from '../util/methods';
@@ -48,7 +48,6 @@ const DESTROYED = 'destroyed';
 const EXIST = 'exist';
 const PREPARE = 'prepare';
 const CENTER = 'center';
-const RUNNING = 'running';
 const controllerDefaultOptions = {
   width: 'auto',
   height: 'auto',
@@ -58,19 +57,21 @@ const controllerDefaultOptions = {
 class Controller extends BaseEvent implements IController {
   public imageLoader: IIMageLoader | null;
   private canvas: ICanvas | null;                 // 封装后的canvas
-  private state: controllerStateType = 'waiting'; // 游戏状态
   private options: IControllerOptions | null;
   private operationalAreaCoordinates: coordinatesType | null = null;
   private operationalWidth: number = 0;
   private operationalHeight: number = 0;
-  private frameSign: number = 0;
-  private timeStamp: number = 0;
   private uiComponents: IObject | null = { background: undefined, globes: {} };
   private canvasEventInfoMap: IObject | null = { [CLICK]: {} };
   private eventReferenceMap: IObject | null = {};
+  private state: stateType = 'waiting';
 
   constructor(canvas: ICanvas, controllerOptions: IControllerOptions = {}) {
     super();
+    this.on(LIFE_CHANGE, (event: IObject) => {
+      const { state } = event;
+      this.state = state;
+    });
     this.canvas = canvas;
     this.options = getMergedOptions(controllerDefaultOptions, controllerOptions);
     this.imageLoader = new ImageLoader();
@@ -288,7 +289,7 @@ class Controller extends BaseEvent implements IController {
             xAcceleration: 0,
             yAcceleration: VERTICAL_ACCELERATION
           });
-          globe.on(LIFT_MOVE, (event: IObject) => {
+          globe.on(LIFE_MOVE, (event: IObject) => {
             const { newCoordinate } = event;
             if (
               this.uiComponents &&
@@ -301,11 +302,11 @@ class Controller extends BaseEvent implements IController {
             }
           });
           globe.on(CLICK, (event: IObject) => {
-            if (this.uiComponents) {
+            if (this.uiComponents && this.state === 'running') {
               if (this.canvas && globeInfo.globe) {
                 const pop = new Pop(this.canvas,{
                   coordinate: globeInfo.globe.coordinate as coordinateType,
-                  during: 0.3,
+                  during: 0.4,
                   radius: GLOBE_RADIUS / 2,
                   distance: GLOBE_RADIUS * 2,
                   buffer: GLOBE_RADIUS / 2,
@@ -340,44 +341,16 @@ class Controller extends BaseEvent implements IController {
     return this;
   }
 
-  private frame(): number {
-    return requestAnimationFrame(() => {
-      const timeStamp = Date.now();
-      const span = (timeStamp - this.timeStamp) / 1000;
-      if (this.canvas && this.operationalAreaCoordinates && this.uiComponents) {
-        this.canvas.clear();
-        this.displayBackground();
-        this.updateGlobesInfo();
-        this.displayGlobes(span);
-
-      }
-      if (this.state === RUNNING) this.frame();
-      this.timeStamp = timeStamp;
-    });
-  }
-
-  private beginFrame() {
-    if (this.frameSign) {
-      cancelAnimationFrame(this.frameSign);
+  public frame(span: number, isUpdateGlobes: boolean) {
+    if (this.operationalAreaCoordinates && this.uiComponents) {
+      this.displayBackground();
+      if (isUpdateGlobes) this.updateGlobesInfo();
+      this.displayGlobes(isUpdateGlobes? span : 0);
     }
-    this.frameSign = this.frame();
   }
 
-  public start(): this {
-    this.state = RUNNING
-    this.beginFrame();
-    return this;
-  }
-
-  public pause(): this {
-    this.state = 'pausing';
-    return this;
-  }
 
   public destroy() {
-    if (this.frameSign) {
-      cancelAnimationFrame(this.frameSign);
-    }
     if (this.canvas) {
       // clear events
       if (this.eventReferenceMap) {
