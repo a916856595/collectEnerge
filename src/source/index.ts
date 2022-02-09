@@ -6,10 +6,12 @@ import {
   IController,
   IObject,
   canvasAnchorType,
-  stateType
+  stateType,
+  IInterface
 } from './declare/declare';
 import BaseEvent from './base/event';
 import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH } from './constant/life';
+import Interface from './controller/interface';
 
 interface ICollectEnergyOptions  {
   container: string;     // The dom element selector.
@@ -22,11 +24,13 @@ interface ICollectEnergyOptions  {
 const RUNNING = 'running';
 const PAUSING = 'pausing';
 const CHANGING = 'changing';
+const SELECTING = 'selecting';
 
 class CollectEnergy extends BaseEvent implements ICollectEnergy {
   private canvas: ICanvas | null;
   private controller: IController | null;
-  private state: stateType = 'waiting'; // 游戏状态
+  private interface: IInterface | null;
+  private state: stateType = CHANGING; // 游戏状态
   private frameSign: number = 0;
   private timeStamp: number = 0;
 
@@ -52,6 +56,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
     this.controller.on(LIFE_ERROR, (event: IObject) => {
       this.postponeFire(LIFE_ERROR, event);
     });
+    this.interface = new Interface(this.canvas, {  });
   }
 
   private changeState(state: stateType) {
@@ -67,6 +72,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
       const timeStamp = Date.now();
       const span = (timeStamp - this.timeStamp) / 1000;
       if (this.controller) this.controller.frame(span, this.state === RUNNING);
+      if (this.interface && (this.state === CHANGING || this.state === SELECTING)) this.interface.frame(span);
       this.frame();
       this.timeStamp = timeStamp;
     });
@@ -94,15 +100,26 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
     return this;
   }
 
+  public select() {
+    this.changeState(CHANGING);
+    if (this.interface) this.interface.startEvolution(Date.now(), 5);
+    this.beginFrame();
+    return this;
+  }
+
   public destroy() {
     if (this.controller) {
       this.controller.destroy();
+      this.controller = null;
     }
-    this.controller = null;
+    if (this.interface) {
+      this.interface.destroy();
+      this.interface = null;
+    }
     if (this.canvas) {
       this.canvas.destroy();
+      this.canvas = null;
     }
-    this.canvas = null;
   }
 }
 

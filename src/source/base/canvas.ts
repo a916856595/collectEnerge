@@ -1,8 +1,27 @@
 import './canvas.scss';
-import { coordinatesType, coordinateType, handlerType, ICanvas, IIMageLoader, IObject } from '../declare/declare';
+import {
+  coordinatesType,
+  coordinateType,
+  handlerType,
+  ICanvas,
+  IIMageLoader,
+  IObject,
+  IStrokeRectOptions
+} from '../declare/declare';
 import BaseEvent from './event';
 import { LIFE_ERROR, LIFE_FINISH } from '../constant/life';
 import { CLICK, RESIZE } from '../constant/baseEvent';
+import { getMergedOptions } from '../util/methods';
+
+interface IStrokeRectOptionsResult {
+  strokeColor: string;
+  strokeWidth: number;
+}
+
+const strokeRectDefaultOptions = {
+  strokeColor: '#000',
+  strokeWidth: 1
+};
 
 class Canvas extends BaseEvent implements ICanvas {
   private container: HTMLElement | null;
@@ -84,6 +103,26 @@ class Canvas extends BaseEvent implements ICanvas {
         topLeftCoordinate[1],
         bottomRightCoordinate[0] - topLeftCoordinate[0],
         bottomRightCoordinate[1] - topLeftCoordinate[1],
+      );
+    }
+    return this;
+  }
+
+  public drawStrokeRect(coordinates: coordinatesType, strokeRectOptions: IStrokeRectOptions = strokeRectDefaultOptions): this {
+    if (this.context) {
+      const options = getMergedOptions(strokeRectDefaultOptions, strokeRectOptions) as IStrokeRectOptionsResult;
+      const { strokeWidth, strokeColor } = options;
+      const [topLeftCoordinate, bottomRightCoordinate] = coordinates;
+      const offset = strokeWidth / 2;
+      this.context.beginPath();
+      this.context.moveTo(topLeftCoordinate[0], topLeftCoordinate[1]);
+      this.context.strokeStyle = strokeColor;
+      this.context.lineWidth = strokeWidth;
+      this.context.strokeRect(
+        topLeftCoordinate[0] + offset,
+        topLeftCoordinate[1] + offset,
+        bottomRightCoordinate[0] - topLeftCoordinate[0] - strokeWidth,
+        bottomRightCoordinate[1] - topLeftCoordinate[1] - strokeWidth
       );
     }
     return this;

@@ -24,12 +24,18 @@ export interface IEventRecorder {
   [key: string]: Function[];
 }
 
+export interface IStrokeRectOptions {
+  strokeColor?: string;
+  strokeWidth?: number;
+}
+
 export interface ICanvas extends IBaseEvent {
   getSize: () => { width: number, height: number };
   setImageLoader: (imageLoader: IIMageLoader) => this;
   destroy: () => void;
   clear: () => this;
   drawFillRect: (coordinates: coordinatesType, fillColor: string) => this;
+  drawStrokeRect: (coordinates: coordinatesType, strokeRectOptions?: IStrokeRectOptions) => this;
   drawImage: (coordinates: coordinatesType, imageName: string) => this;
   drawFillCircle: (coordinate: coordinateType, radius: number, fillColor: string) => this;
 }
@@ -39,7 +45,7 @@ export interface IController extends IBaseEvent {
   destroy: () => void;
 }
 
-export type stateType = 'pausing' | 'running' | 'ended' | 'preparing' | 'waiting' | 'changing';
+export type stateType = 'pausing' | 'running' | 'ended' | 'preparing' | 'waiting' | 'changing' | 'selecting';
 
 export interface IObject {
   [key: string]: any;
@@ -97,5 +103,8 @@ export interface IStuffInstance extends IBaseEvent {
 }
 
 export interface IInterface extends IBaseEvent {
+  startEvolution: (startTime: number, span: number) => this;
+  setMenu: (menu: IObject) => this;
+  frame: (span: number) => this;
   destroy: () => void;
 }

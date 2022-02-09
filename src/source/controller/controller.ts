@@ -48,6 +48,7 @@ const DESTROYED = 'destroyed';
 const EXIST = 'exist';
 const PREPARE = 'prepare';
 const CENTER = 'center';
+const RUNNING = 'running';
 const controllerDefaultOptions = {
   width: 'auto',
   height: 'auto',
@@ -302,7 +303,7 @@ class Controller extends BaseEvent implements IController {
             }
           });
           globe.on(CLICK, (event: IObject) => {
-            if (this.uiComponents && this.state === 'running') {
+            if (this.uiComponents && this.state === RUNNING) {
               if (this.canvas && globeInfo.globe) {
                 const pop = new Pop(this.canvas,{
                   coordinate: globeInfo.globe.coordinate as coordinateType,
