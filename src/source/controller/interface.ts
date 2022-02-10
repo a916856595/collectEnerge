@@ -1,5 +1,5 @@
 import BaseEvent from '../base/event';
-import { coordinatesType, ICanvas, IInterface, IObject } from '../declare/declare';
+import { coordinatesType, directionType, ICanvas, IInterface, IObject } from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
 import { LIFE_FINISH } from '../constant/life';
 
@@ -22,6 +22,7 @@ class Interface extends BaseEvent implements IInterface {
   private frameTime: number = 0;
   private during: number = 0;
   private menu: IObject | null = null;
+  private direction: directionType = 'close';
 
   constructor(canvas: ICanvas, interfaceOptions: IInterfaceOptions) {
     super();
@@ -29,9 +30,10 @@ class Interface extends BaseEvent implements IInterface {
     this.options = getMergedOptions(interfaceDefaultOptions, interfaceOptions) as IInterfaceOptionsResult;
   }
 
-  public startEvolution(startTime: number, during: number): this {
+  public startEvolution(startTime: number, during: number, direction: directionType = 'close'): this {
     this.startTime = startTime;
     this.during = during;
+    this.direction = direction;
     return this;
   }
 
@@ -47,15 +49,16 @@ class Interface extends BaseEvent implements IInterface {
       const { width, height } = this.canvas.getSize();
       const targetTime = this.startTime + this.during * 1000;
       if (currentTime > this.startTime && currentTime < targetTime) {
-        const singleWith = Math.round(width / horizontalCount);
+        const singleWith = Math.ceil(width / horizontalCount);
         const verticalCount = Math.ceil(height / singleWith);
         const total = horizontalCount * verticalCount;
-        const strokeWidth = (1 - (targetTime - currentTime) / (this.during * 1000)) * singleWith;
+        const diffPercentage = (targetTime - currentTime) / (this.during * 1000);
+        const strokeWidth = (this.direction === 'close' ? (1 - diffPercentage) : diffPercentage) * singleWith;
         // @ts-ignore
         Array.apply(undefined, { length: total }).forEach((item: undefined, index: number) => {
           const realIndex = index + 1;
           const xOrder = index % horizontalCount;
-          const yOrder = Math.floor(realIndex / verticalCount);
+          const yOrder = Math.ceil(realIndex / horizontalCount) - 1;
           if (this.canvas) {
             const coordinates: coordinatesType = [
               [xOrder * singleWith, yOrder * singleWith],

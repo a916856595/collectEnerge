@@ -3,6 +3,7 @@ export type coordinateType = [number, number];
 export type coordinatesType = coordinateType[];
 export type canvasAnchorType = 'center' | 'left' | 'right' | 'top' | 'bottom';
 export type backgroundType = 'color' | 'image';
+export type directionType = 'close' | 'open';
 
 export interface IBaseEvent {
   on: (eventType: string, handler: handlerType) => this;
@@ -103,7 +104,7 @@ export interface IStuffInstance extends IBaseEvent {
 }
 
 export interface IInterface extends IBaseEvent {
-  startEvolution: (startTime: number, span: number) => this;
+  startEvolution: (startTime: number, span: number, direction?: directionType) => this;
   setMenu: (menu: IObject) => this;
   frame: (span: number) => this;
   destroy: () => void;
