@@ -16,7 +16,7 @@ collectEnergy.on('error', (event) => {
 collectEnergy.on('finish', (event) => {
   console.log('ready', event.message);
 
-  collectEnergy.select();
+  collectEnergy.select(true);
 
   // setTimeout(() => {
   //   collectEnergy.pause()

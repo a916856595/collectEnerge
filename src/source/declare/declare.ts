@@ -124,10 +124,11 @@ export interface IStuffInstance extends IBaseEvent {
 export interface IMenuOptions {
   text: string;
   onChoose: () => void;
+  coordinates?: coordinatesType;
 }
 
 export interface IInterface extends IBaseEvent {
-  startEvolution: (startTime: number, span: number, direction?: directionType) => this;
+  startEvolution: (startTime: number, during: number, direction?: directionType) => this;
   setMenu: (menu: IMenuOptions[]) => this;
   frame: (span: number) => this;
   destroy: () => void;

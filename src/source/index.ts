@@ -10,7 +10,7 @@ import {
   IInterface
 } from './declare/declare';
 import BaseEvent from './base/event';
-import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH } from './constant/life';
+import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_MISS } from './constant/life';
 import Interface from './controller/interface';
 import { MENU_ANIMATION_TIME } from '../../config/config';
 
@@ -34,6 +34,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
   private state: stateType = CHANGING; // 游戏状态
   private frameSign: number = 0;
   private timeStamp: number = 0;
+  private missCount: number = 0;
 
   constructor(collectEnergyOptions: ICollectEnergyOptions) {
     super();
@@ -56,6 +57,12 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
     });
     this.controller.on(LIFE_ERROR, (event: IObject) => {
       this.postponeFire(LIFE_ERROR, event);
+    });
+    this.controller.on(LIFE_MISS, (event: IObject) => {
+      this.missCount += 1;
+      if (this.interface && this.missCount > 5) {
+        this.select();
+      }
     });
     this.interface = new Interface(this.canvas, { horizontalCount: 8 });
     this.interface.on(LIFE_FINISH, () => {
@@ -94,6 +101,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
   }
 
   public start() {
+    this.missCount = 0;
     if (this.controller) this.controller.reset();
     this.changeState(RUNNING);
     this.beginFrame();
@@ -105,7 +113,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
     return this;
   }
 
-  public select() {
+  public select(isFirst?: boolean) {
     this.changeState(CHANGING);
     if (this.interface) {
       this.interface
@@ -120,12 +128,12 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
               if (this.interface) {
                 this.interface
                   .on(LIFE_FINISH, onAnimationEnd)
-                  .startEvolution(Date.now(), MENU_ANIMATION_TIME)
+                  .startEvolution(Date.now(), MENU_ANIMATION_TIME, 'open');
               }
             }
           }
         ])
-        .startEvolution(Date.now(), MENU_ANIMATION_TIME);
+        .startEvolution(Date.now(), isFirst? 0 : MENU_ANIMATION_TIME);
     }
     this.beginFrame();
     return this;

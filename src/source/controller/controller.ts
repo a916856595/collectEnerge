@@ -14,7 +14,7 @@ import {
   IStuffInstance,
   stateType
 } from '../declare/declare';
-import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_MOVE } from '../constant/life';
+import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_MISS, LIFE_MOVE } from '../constant/life';
 import ImageLoader from '../component/imageLoader';
 import globeConfig from '../../../config/uiConfig';
 import { getMergedOptions } from '../util/methods';
@@ -284,9 +284,9 @@ class Controller extends BaseEvent implements IController {
             coordinate: this.generateGlobeCoordinate(),
             radius: GLOBE_RADIUS,
             xSpeed: 0,
-            ySpeed: 50,
+            ySpeed: 120,
             xMaxSpeed: 0,
-            yMaxSpeed: 50,
+            yMaxSpeed: 150,
             xAcceleration: 0,
             yAcceleration: VERTICAL_ACCELERATION
           });
@@ -298,6 +298,7 @@ class Controller extends BaseEvent implements IController {
               this.operationalAreaCoordinates[1] &&
               (newCoordinate[1] - GLOBE_RADIUS) > (this.operationalAreaCoordinates[1][1] as number)
             ) {
+              this.fire(LIFE_MISS);
               globe.destroy();
               delete this.uiComponents.globes[globeInfo.id];
             }

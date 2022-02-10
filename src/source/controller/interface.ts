@@ -1,8 +1,18 @@
 import BaseEvent from '../base/event';
-import { coordinatesType, directionType, ICanvas, IInterface, IMenuOptions, IObject } from '../declare/declare';
+import {
+  coordinatesType, coordinateType,
+  directionType,
+  handlerType,
+  ICanvas,
+  IInterface,
+  IMenuOptions,
+  IObject
+} from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
 import { LIFE_FINISH } from '../constant/life';
 import UIConfig from '../../../config/uiConfig';
+import { CLICK } from '../constant/baseEvent';
+import { isCoordinateInRect } from '../util/mathUtil';
 
 interface IInterfaceOptions {
   horizontalCount?: number;
@@ -24,6 +34,7 @@ class Interface extends BaseEvent implements IInterface {
   private during: number = 0;
   private menu: IMenuOptions[] | null = null;
   private direction: directionType = 'close';
+  private lastCanvasEvent: handlerType | null = null;
 
   constructor(canvas: ICanvas, interfaceOptions: IInterfaceOptions = interfaceDefaultOptions) {
     super();
@@ -74,11 +85,16 @@ class Interface extends BaseEvent implements IInterface {
             const textWidth = this.canvas.measureText(menu.text, { fontSize: UIConfig.menuFontSize }).width;
             const x = width / 2 - textWidth / 2;
             const y = height / (total + 1) * (index + 1);
-            this.canvas.drawFillText(
+            const topLeftCoordinate: coordinateType = [x, y];
+            menu.coordinates = [
               [x, y],
+              [x + width, y + UIConfig.menuFontSize]
+            ];
+            this.canvas.drawFillText(
+              topLeftCoordinate,
               menu.text,
               { fontColor: UIConfig.menuFontColor, fontSize: UIConfig.menuFontSize }
-              )
+            );
           }
         });
       }
@@ -89,11 +105,29 @@ class Interface extends BaseEvent implements IInterface {
     this.startTime = startTime;
     this.during = during;
     this.direction = direction;
+    if (this.during <= 0) {
+      this.fire(LIFE_FINISH, { startTime: this.startTime });
+    }
     return this;
   }
 
   public setMenu(menu: IMenuOptions[]): this {
     this.menu = menu;
+    if (this.canvas) {
+      if (this.lastCanvasEvent) {
+        this.canvas.off(CLICK, this.lastCanvasEvent);
+      }
+      this.lastCanvasEvent = (event: IObject) => {
+        const { x, y } = event;
+        if (this.menu) {
+          this.menu.forEach((menu: IMenuOptions) => {
+            const { coordinates, onChoose } = menu;
+            if (coordinates && isCoordinateInRect([x, y], coordinates)) onChoose();
+          });
+        }
+      };
+      this.canvas.on(CLICK, this.lastCanvasEvent);
+    }
     return this;
   }
 
@@ -101,7 +135,7 @@ class Interface extends BaseEvent implements IInterface {
     const currentTime = Date.now();
     const targetTime = this.startTime + this.during * 1000;
     if (currentTime < targetTime) this.frameAnimation(currentTime);
-    if (currentTime > targetTime) this.frameMenu();
+    if (currentTime >= targetTime) this.frameMenu();
     if (this.frameTime < targetTime && currentTime > targetTime) {
       this.fire(LIFE_FINISH, { startTime: this.startTime });
     }
@@ -110,6 +144,10 @@ class Interface extends BaseEvent implements IInterface {
   }
 
   public destroy() {
+    if (this.lastCanvasEvent && this.canvas) {
+      this.canvas.off(CLICK, this.lastCanvasEvent);
+    }
+    this.lastCanvasEvent = null;
     this.canvas = null;
     this.options = null;
     this.menu = null;
