@@ -1,7 +1,8 @@
 import BaseEvent from '../base/event';
-import { coordinatesType, directionType, ICanvas, IInterface, IObject } from '../declare/declare';
+import { coordinatesType, directionType, ICanvas, IInterface, IMenuOptions, IObject } from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
 import { LIFE_FINISH } from '../constant/life';
+import UIConfig from '../../../config/uiConfig';
 
 interface IInterfaceOptions {
   horizontalCount?: number;
@@ -21,29 +22,16 @@ class Interface extends BaseEvent implements IInterface {
   private startTime: number = 0;
   private frameTime: number = 0;
   private during: number = 0;
-  private menu: IObject | null = null;
+  private menu: IMenuOptions[] | null = null;
   private direction: directionType = 'close';
 
-  constructor(canvas: ICanvas, interfaceOptions: IInterfaceOptions) {
+  constructor(canvas: ICanvas, interfaceOptions: IInterfaceOptions = interfaceDefaultOptions) {
     super();
     this.canvas = canvas;
     this.options = getMergedOptions(interfaceDefaultOptions, interfaceOptions) as IInterfaceOptionsResult;
   }
 
-  public startEvolution(startTime: number, during: number, direction: directionType = 'close'): this {
-    this.startTime = startTime;
-    this.during = during;
-    this.direction = direction;
-    return this;
-  }
-
-  public setMenu(menu: IObject): this {
-    this.menu = menu;
-    return this;
-  }
-
-  public frame(): this {
-    const currentTime = Date.now();
+  private frameAnimation(currentTime: number) {
     if (this.canvas && this.options) {
       const { horizontalCount } = this.options;
       const { width, height } = this.canvas.getSize();
@@ -64,13 +52,58 @@ class Interface extends BaseEvent implements IInterface {
               [xOrder * singleWith, yOrder * singleWith],
               [(xOrder + 1) * singleWith, (yOrder + 1) * singleWith]
             ];
-            this.canvas.drawStrokeRect(coordinates, { strokeWidth });
+            this.canvas.drawStrokeRect(coordinates, { strokeWidth, strokeColor: UIConfig.menuBackgroundColor });
           }
         });
       }
-      if (this.frameTime < targetTime && currentTime > targetTime) {
-        this.fire(LIFE_FINISH, { startTime: this.startTime });
+    }
+  }
+
+  private frameMenu() {
+    if (this.canvas) {
+      const { width, height } = this.canvas.getSize();
+      const coordinates: coordinatesType = [
+        [0, 0],
+        [width, height]
+      ];
+      this.canvas.drawFillRect(coordinates, UIConfig.menuBackgroundColor);
+      if (this.menu) {
+        const total = this.menu.length;
+        this.menu.forEach((menu: IMenuOptions, index: number) => {
+          if (this.canvas) {
+            const textWidth = this.canvas.measureText(menu.text, { fontSize: UIConfig.menuFontSize }).width;
+            const x = width / 2 - textWidth / 2;
+            const y = height / (total + 1) * (index + 1);
+            this.canvas.drawFillText(
+              [x, y],
+              menu.text,
+              { fontColor: UIConfig.menuFontColor, fontSize: UIConfig.menuFontSize }
+              )
+          }
+        });
       }
+    }
+  }
+
+  public startEvolution(startTime: number, during: number, direction: directionType = 'close'): this {
+    this.startTime = startTime;
+    this.during = during;
+    this.direction = direction;
+    return this;
+  }
+
+  public setMenu(menu: IMenuOptions[]): this {
+    this.menu = menu;
+    return this;
+  }
+
+  public frame(): this {
+    const currentTime = Date.now();
+    const targetTime = this.startTime + this.during * 1000;
+    if (currentTime < targetTime) this.frameAnimation(currentTime);
+    if (currentTime > targetTime) this.frameMenu();
+    if (this.frameTime < targetTime && currentTime > targetTime) {
+      this.fire(LIFE_FINISH, { startTime: this.startTime });
     }
     this.frameTime = currentTime;
     return this;

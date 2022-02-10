@@ -12,6 +12,7 @@ import {
 import BaseEvent from './base/event';
 import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH } from './constant/life';
 import Interface from './controller/interface';
+import { MENU_ANIMATION_TIME } from '../../config/config';
 
 interface ICollectEnergyOptions  {
   container: string;     // The dom element selector.
@@ -56,7 +57,10 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
     this.controller.on(LIFE_ERROR, (event: IObject) => {
       this.postponeFire(LIFE_ERROR, event);
     });
-    this.interface = new Interface(this.canvas, {  });
+    this.interface = new Interface(this.canvas, { horizontalCount: 8 });
+    this.interface.on(LIFE_FINISH, () => {
+      this.changeState(SELECTING);
+    });
   }
 
   private changeState(state: stateType) {
@@ -71,7 +75,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
       if (this.canvas) this.canvas.clear();
       const timeStamp = Date.now();
       const span = (timeStamp - this.timeStamp) / 1000;
-      if (this.controller) this.controller.frame(span, this.state === RUNNING);
+      if (this.controller && (this.state === RUNNING || this.state === CHANGING)) this.controller.frame(span, this.state === RUNNING);
       if (this.interface && (this.state === CHANGING || this.state === SELECTING)) this.interface.frame(span);
       this.frame();
       this.timeStamp = timeStamp;
@@ -90,6 +94,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
   }
 
   public start() {
+    if (this.controller) this.controller.reset();
     this.changeState(RUNNING);
     this.beginFrame();
     return this;
@@ -102,7 +107,26 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
 
   public select() {
     this.changeState(CHANGING);
-    if (this.interface) this.interface.startEvolution(Date.now(), 1.2);
+    if (this.interface) {
+      this.interface
+        .setMenu([
+          {
+            text: '开始游戏',
+            onChoose: () => {
+              const onAnimationEnd = () => {
+                if (this.interface) this.interface.off(LIFE_FINISH, onAnimationEnd);
+                this.start();
+              };
+              if (this.interface) {
+                this.interface
+                  .on(LIFE_FINISH, onAnimationEnd)
+                  .startEvolution(Date.now(), MENU_ANIMATION_TIME)
+              }
+            }
+          }
+        ])
+        .startEvolution(Date.now(), MENU_ANIMATION_TIME);
+    }
     this.beginFrame();
     return this;
   }

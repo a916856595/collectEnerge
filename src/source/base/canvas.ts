@@ -4,9 +4,12 @@ import {
   coordinateType,
   handlerType,
   ICanvas,
+  IFillTextOptions,
   IIMageLoader,
   IObject,
-  IStrokeRectOptions
+  IStrokeRectOptions,
+  ITextMeasureOptions,
+  ITextMeasureResult
 } from '../declare/declare';
 import BaseEvent from './event';
 import { LIFE_ERROR, LIFE_FINISH } from '../constant/life';
@@ -17,11 +20,30 @@ interface IStrokeRectOptionsResult {
   strokeColor: string;
   strokeWidth: number;
 }
+interface IFillTextOptionsResult {
+  font: string;
+  fontSize: number;
+  fontColor: string;
+}
+interface ITextMeasureOptionsResult {
+  font: string;
+  fontSize: number;
+}
 
-const strokeRectDefaultOptions = {
+const strokeRectDefaultOptions: IStrokeRectOptionsResult = {
   strokeColor: '#000',
   strokeWidth: 1
 };
+const textMeasureDefaultOptions: ITextMeasureOptionsResult = {
+  font: 'Arial',
+  fontSize: 12
+}
+const fillTextDefaultOptions: IFillTextOptionsResult = {
+  font: 'Arial',
+  fontSize: 12,
+  fontColor: '#000'
+}
+const PX = 'px';
 
 class Canvas extends BaseEvent implements ICanvas {
   private container: HTMLElement | null;
@@ -151,6 +173,28 @@ class Canvas extends BaseEvent implements ICanvas {
       this.context.arc(coordinate[0], coordinate[1], radius, 0, 2 * Math.PI);
       this.context.fillStyle = fillColor;
       this.context.fill();
+    }
+    return this;
+  }
+
+  public measureText(text: string, textMeasureOptions: ITextMeasureOptions = textMeasureDefaultOptions): ITextMeasureResult {
+    if (this.context) {
+      const options = getMergedOptions(textMeasureDefaultOptions, textMeasureOptions) as ITextMeasureOptionsResult
+      this.context.font = `${options.fontSize}${PX} ${options.font}`;
+      return this.context.measureText(text);
+    }
+    return { width: 0 };
+  }
+
+  public drawFillText(coordinate: coordinateType, text: string, fillTextOptions: IFillTextOptions = fillTextDefaultOptions): this {
+    if (this.context) {
+      const options = getMergedOptions(fillTextDefaultOptions, fillTextOptions) as IFillTextOptionsResult;
+      const { font, fontSize, fontColor } = options;
+      this.context.beginPath();
+      this.context.moveTo(coordinate[0], coordinate[1]);
+      this.context.fillStyle = fontColor;
+      this.context.font = `${fontSize}${PX} ${font}`;
+      this.context.fillText(text, coordinate[0], coordinate[1]);
     }
     return this;
   }

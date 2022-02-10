@@ -2,5 +2,9 @@ export default {
   imageConfig: {
     background: 'https://t7.baidu.com/it/u=358282851,138825731&fm=193&f=GIF'
   },
-  touchBuffer: 20
+  touchBuffer: 10,
+  menuBackgroundColor: '#000',
+  menuFont: 'Arial',
+  menuFontColor: '#fff',
+  menuFontSize: 24,
 }

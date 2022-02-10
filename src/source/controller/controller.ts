@@ -342,14 +342,33 @@ class Controller extends BaseEvent implements IController {
     return this;
   }
 
-  public frame(span: number, isUpdateGlobes: boolean) {
+  public frame(span: number, isUpdateGlobes: boolean): this {
     if (this.operationalAreaCoordinates && this.uiComponents) {
       this.displayBackground();
       if (isUpdateGlobes) this.updateGlobesInfo();
       this.displayGlobes(isUpdateGlobes? span : 0);
     }
+    return this;
   }
 
+  public reset(): this {
+    if (this.uiComponents && this.uiComponents.globes) {
+      // @ts-ignore
+      Object.entries(this.uiComponents.globes).forEach((keyAndGlobeInfo: [string, IGlobeInfo]) => {
+        const [key, globeInfo] = keyAndGlobeInfo;
+        if (globeInfo.globe) {
+          globeInfo.globe.destroy;
+          globeInfo.globe = undefined;
+        }
+        if (globeInfo.pop) {
+          globeInfo.pop.destroy();
+          globeInfo.pop = undefined;
+        }
+        if (this.uiComponents) delete this.uiComponents.globes[key];
+      })
+    }
+    return this;
+  }
 
   public destroy() {
     if (this.canvas) {
