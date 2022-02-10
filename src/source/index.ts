@@ -102,7 +102,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
 
   public select() {
     this.changeState(CHANGING);
-    if (this.interface) this.interface.startEvolution(Date.now(), 5, 'open');
+    if (this.interface) this.interface.startEvolution(Date.now(), 1.2);
     this.beginFrame();
     return this;
   }

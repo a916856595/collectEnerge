@@ -10,3 +10,11 @@ export const getMergedOptions = (defaultOptions: IObject, userOptions: IObject):
   Object.assign(result, userOptions);
   return result;
 }
+
+const getRandomNumber = (): number => {
+  return Math.round(Math.random() * 256);
+}
+
+export const getRandomColor = (): string => {
+  return `rgb(${getRandomNumber()}, ${getRandomNumber()}, ${getRandomNumber()})`;
+}

@@ -53,7 +53,7 @@ class Interface extends BaseEvent implements IInterface {
         const verticalCount = Math.ceil(height / singleWith);
         const total = horizontalCount * verticalCount;
         const diffPercentage = (targetTime - currentTime) / (this.during * 1000);
-        const strokeWidth = (this.direction === 'close' ? (1 - diffPercentage) : diffPercentage) * singleWith;
+        const strokeWidth = (this.direction === 'close' ? (1 - diffPercentage) : diffPercentage) * singleWith / 2;
         // @ts-ignore
         Array.apply(undefined, { length: total }).forEach((item: undefined, index: number) => {
           const realIndex = index + 1;

@@ -19,7 +19,7 @@ interface IStrokeRectOptionsResult {
 }
 
 const strokeRectDefaultOptions = {
-  strokeColor: 'pink',
+  strokeColor: '#000',
   strokeWidth: 1
 };
 
