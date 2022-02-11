@@ -14,7 +14,7 @@ import {
   IStuffInstance,
   stateType
 } from '../declare/declare';
-import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_MISS, LIFE_MOVE } from '../constant/life';
+import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_GOAL, LIFE_MISS, LIFE_MOVE } from '../constant/life';
 import ImageLoader from '../component/imageLoader';
 import globeConfig from '../../../config/uiConfig';
 import { getMergedOptions } from '../util/methods';
@@ -324,6 +324,7 @@ class Controller extends BaseEvent implements IController {
               globe.destroy();
               globeInfo.state = DESTROYED;
               globeInfo.globe = undefined;
+              this.fire(LIFE_GOAL);
             }
           });
           this.changeStuffEventMapState(CLICK, { stuff: globe, zIndex: Number(globe.id) });

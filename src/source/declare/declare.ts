@@ -123,7 +123,7 @@ export interface IStuffInstance extends IBaseEvent {
 
 export interface IMenuOptions {
   text: string;
-  onChoose: () => void;
+  onChoose?: () => void;
   coordinates?: coordinatesType;
 }
 

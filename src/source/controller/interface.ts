@@ -130,7 +130,7 @@ class Interface extends BaseEvent implements IInterface {
           this.menu.forEach((menu: IMenuOptions) => {
             const { coordinates, onChoose } = menu;
             const isClickAtRect = !!coordinates && isCoordinateInRect([x, y], coordinates);
-            if (isClickAtRect && this.state === SELECTING) onChoose();
+            if (isClickAtRect && this.state === SELECTING && onChoose) onChoose();
           });
         }
       };

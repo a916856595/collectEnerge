@@ -10,7 +10,7 @@ import {
   IInterface
 } from './declare/declare';
 import BaseEvent from './base/event';
-import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_MISS } from './constant/life';
+import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_GOAL, LIFE_MISS } from './constant/life';
 import Interface from './controller/interface';
 import { MENU_ANIMATION_TIME } from '../../config/config';
 import { CLOSE, OPEN, SELECTING } from './constant/other';
@@ -35,6 +35,8 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
   private frameSign: number = 0;
   private timeStamp: number = 0;
   private missCount: number = 0;
+  private score: number = 0;
+  private highScore: number = 0;
 
   constructor(collectEnergyOptions: ICollectEnergyOptions) {
     super();
@@ -61,8 +63,12 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
     this.controller.on(LIFE_MISS, (event: IObject) => {
       this.missCount += 1;
       if (this.interface && this.missCount > 5) {
+        if (this.score > this.highScore) this.highScore = this.score;
         this.select();
       }
+    });
+    this.controller.on(LIFE_GOAL, (event: IObject) => {
+      this.score += 1;
     });
     this.interface = new Interface(this.canvas, { horizontalCount: 8 });
     this.interface.on(LIFE_FINISH, (event: IObject) => {
@@ -106,6 +112,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
 
   public start() {
     this.missCount = 0;
+    this.score = 0;
     if (this.controller) this.controller.reset();
     this.changeState(RUNNING);
     this.beginFrame();
@@ -123,7 +130,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
       this.interface
         .setMenu([
           {
-            text: '开始游戏',
+            text: 'START',
             onChoose: () => {
               const onAnimationEnd = () => {
                 if (this.interface) this.interface.off(LIFE_FINISH, onAnimationEnd);
@@ -137,6 +144,9 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
                   .startEvolution(Date.now(), MENU_ANIMATION_TIME, OPEN);
               }
             }
+          },
+          {
+            text: `HIGH SCORE: ${this.highScore}`
           }
         ])
         .startEvolution(Date.now(), isFirst? 0 : MENU_ANIMATION_TIME);
