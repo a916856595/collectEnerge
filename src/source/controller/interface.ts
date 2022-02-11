@@ -84,11 +84,11 @@ class Interface extends BaseEvent implements IInterface {
           if (this.canvas) {
             const textWidth = this.canvas.measureText(menu.text, { fontSize: UIConfig.menuFontSize }).width;
             const x = width / 2 - textWidth / 2;
-            const y = height / (total + 1) * (index + 1);
+            const y = height / (total + 1) * (index + 1) - UIConfig.menuFontSize / 2;
             const topLeftCoordinate: coordinateType = [x, y];
             menu.coordinates = [
               [x, y],
-              [x + width, y + UIConfig.menuFontSize]
+              [x + textWidth, y + UIConfig.menuFontSize]
             ];
             this.canvas.drawFillText(
               topLeftCoordinate,

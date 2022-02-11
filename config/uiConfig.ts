@@ -1,6 +1,6 @@
 export default {
   imageConfig: {
-    background: 'https://t7.baidu.com/it/u=358282851,138825731&fm=193&f=GIF'
+    background: 'https://pic2.zhimg.com/v2-17d52c3b6f9d12fd9abd63002f7b38bd_r.jpg?source=1940ef5c'
   },
   touchBuffer: 10,
   menuBackgroundColor: '#000',

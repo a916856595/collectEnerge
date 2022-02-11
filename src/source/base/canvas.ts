@@ -44,6 +44,7 @@ const fillTextDefaultOptions: IFillTextOptionsResult = {
   fontColor: '#000'
 }
 const PX = 'px';
+const TOP = 'top';
 
 class Canvas extends BaseEvent implements ICanvas {
   private container: HTMLElement | null;
@@ -193,6 +194,7 @@ class Canvas extends BaseEvent implements ICanvas {
       this.context.beginPath();
       this.context.moveTo(coordinate[0], coordinate[1]);
       this.context.fillStyle = fontColor;
+      this.context.textBaseline = TOP;
       this.context.font = `${fontSize}${PX} ${font}`;
       this.context.fillText(text, coordinate[0], coordinate[1]);
     }
