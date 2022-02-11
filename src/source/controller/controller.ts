@@ -67,12 +67,14 @@ class Controller extends BaseEvent implements IController {
   private canvasEventInfoMap: IObject | null = { [CLICK]: {} };
   private eventReferenceMap: IObject | null = {};
   private state: stateType = WAITING;
+  private startTime: number = 0;
 
   constructor(canvas: ICanvas, controllerOptions: IControllerOptions = {}) {
     super();
     this.on(LIFE_CHANGE, (event: IObject) => {
       const { state } = event;
       this.state = state;
+      if (state === RUNNING) this.startTime = Date.now();
     });
     this.canvas = canvas;
     this.options = getMergedOptions(controllerDefaultOptions, controllerOptions);
@@ -280,16 +282,17 @@ class Controller extends BaseEvent implements IController {
       // @ts-ignore
       Object.values(this.uiComponents.globes).forEach((globeInfo: IGlobeInfo) => {
         if (globeInfo.state === PREPARE && this.canvas) {
+          const speedDiff = Math.round((Date.now() - this.startTime) / 1000) * 2;
           const globe = new Globe(this.canvas, {
             id: globeInfo.id,
             coordinate: this.generateGlobeCoordinate(),
             radius: GLOBE_RADIUS,
             xSpeed: 0,
-            ySpeed: 120,
+            ySpeed: 100 + speedDiff,
             xMaxSpeed: 0,
-            yMaxSpeed: 150,
+            yMaxSpeed: Infinity,
             xAcceleration: 0,
-            yAcceleration: VERTICAL_ACCELERATION
+            yAcceleration: 0
           });
           globe.on(LIFE_MOVE, (event: IObject) => {
             const { newCoordinate } = event;
