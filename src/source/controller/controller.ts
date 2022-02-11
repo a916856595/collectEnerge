@@ -25,6 +25,7 @@ import { GLOBE_RADIUS, VERTICAL_ACCELERATION } from '../../../config/config';
 import { generateId } from '../util/util';
 import UIConfig from '../../../config/uiConfig';
 import Pop from '../ui/pop';
+import { WAITING } from '../constant/other';
 
 interface IControllerOptions {
   width?: string;
@@ -65,7 +66,7 @@ class Controller extends BaseEvent implements IController {
   private uiComponents: IObject | null = { background: undefined, globes: {} };
   private canvasEventInfoMap: IObject | null = { [CLICK]: {} };
   private eventReferenceMap: IObject | null = {};
-  private state: stateType = 'waiting';
+  private state: stateType = WAITING;
 
   constructor(canvas: ICanvas, controllerOptions: IControllerOptions = {}) {
     super();
@@ -246,7 +247,7 @@ class Controller extends BaseEvent implements IController {
   private generateGlobeCoordinate(): coordinateType {
     let coordinate: coordinateType = [0, 0];
     if (this.operationalAreaCoordinates && this.operationalAreaCoordinates[0] && this.operationalAreaCoordinates[1]) {
-      const range = this.operationalAreaCoordinates[1][0] - GLOBE_RADIUS - this.operationalAreaCoordinates[0][0];
+      const range = this.operationalAreaCoordinates[1][0] - this.operationalAreaCoordinates[0][0] - GLOBE_RADIUS * 2;
       coordinate = [
         this.operationalAreaCoordinates[0][0] + GLOBE_RADIUS + Math.round(Math.random() * range),
         this.operationalAreaCoordinates[0][1] - GLOBE_RADIUS

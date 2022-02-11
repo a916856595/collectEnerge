@@ -6,13 +6,15 @@ import {
   ICanvas,
   IInterface,
   IMenuOptions,
-  IObject
+  IObject,
+  stateType
 } from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
-import { LIFE_FINISH } from '../constant/life';
+import { LIFE_CHANGE, LIFE_FINISH } from '../constant/life';
 import UIConfig from '../../../config/uiConfig';
 import { CLICK } from '../constant/baseEvent';
 import { isCoordinateInRect } from '../util/mathUtil';
+import { CLOSE, SELECTING, WAITING } from '../constant/other';
 
 interface IInterfaceOptions {
   horizontalCount?: number;
@@ -33,11 +35,16 @@ class Interface extends BaseEvent implements IInterface {
   private frameTime: number = 0;
   private during: number = 0;
   private menu: IMenuOptions[] | null = null;
-  private direction: directionType = 'close';
+  private direction: directionType = CLOSE;
   private lastCanvasEvent: handlerType | null = null;
+  private state: stateType = WAITING;
 
   constructor(canvas: ICanvas, interfaceOptions: IInterfaceOptions = interfaceDefaultOptions) {
     super();
+    this.on(LIFE_CHANGE, (event: IObject) => {
+      const { state } = event;
+      this.state = state;
+    });
     this.canvas = canvas;
     this.options = getMergedOptions(interfaceDefaultOptions, interfaceOptions) as IInterfaceOptionsResult;
   }
@@ -52,7 +59,7 @@ class Interface extends BaseEvent implements IInterface {
         const verticalCount = Math.ceil(height / singleWith);
         const total = horizontalCount * verticalCount;
         const diffPercentage = (targetTime - currentTime) / (this.during * 1000);
-        const strokeWidth = (this.direction === 'close' ? (1 - diffPercentage) : diffPercentage) * singleWith / 2;
+        const strokeWidth = (this.direction === CLOSE ? (1 - diffPercentage) : diffPercentage) * singleWith / 2;
         // @ts-ignore
         Array.apply(undefined, { length: total }).forEach((item: undefined, index: number) => {
           const realIndex = index + 1;
@@ -101,12 +108,12 @@ class Interface extends BaseEvent implements IInterface {
     }
   }
 
-  public startEvolution(startTime: number, during: number, direction: directionType = 'close'): this {
+  public startEvolution(startTime: number, during: number, direction: directionType = CLOSE): this {
     this.startTime = startTime;
     this.during = during;
     this.direction = direction;
     if (this.during <= 0) {
-      this.fire(LIFE_FINISH, { startTime: this.startTime });
+      this.fire(LIFE_FINISH, { startTime: this.startTime, direction });
     }
     return this;
   }
@@ -122,7 +129,8 @@ class Interface extends BaseEvent implements IInterface {
         if (this.menu) {
           this.menu.forEach((menu: IMenuOptions) => {
             const { coordinates, onChoose } = menu;
-            if (coordinates && isCoordinateInRect([x, y], coordinates)) onChoose();
+            const isClickAtRect = !!coordinates && isCoordinateInRect([x, y], coordinates);
+            if (isClickAtRect && this.state === SELECTING) onChoose();
           });
         }
       };
@@ -134,11 +142,11 @@ class Interface extends BaseEvent implements IInterface {
   public frame(): this {
     const currentTime = Date.now();
     const targetTime = this.startTime + this.during * 1000;
+    if (this.frameTime < targetTime && currentTime >= targetTime) {
+      this.fire(LIFE_FINISH, { startTime: this.startTime, direction: this.direction });
+    }
     if (currentTime < targetTime) this.frameAnimation(currentTime);
     if (currentTime >= targetTime) this.frameMenu();
-    if (this.frameTime < targetTime && currentTime > targetTime) {
-      this.fire(LIFE_FINISH, { startTime: this.startTime });
-    }
     this.frameTime = currentTime;
     return this;
   }

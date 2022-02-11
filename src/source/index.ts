@@ -13,6 +13,7 @@ import BaseEvent from './base/event';
 import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_MISS } from './constant/life';
 import Interface from './controller/interface';
 import { MENU_ANIMATION_TIME } from '../../config/config';
+import { CLOSE, OPEN, SELECTING } from './constant/other';
 
 interface ICollectEnergyOptions  {
   container: string;     // The dom element selector.
@@ -25,7 +26,6 @@ interface ICollectEnergyOptions  {
 const RUNNING = 'running';
 const PAUSING = 'pausing';
 const CHANGING = 'changing';
-const SELECTING = 'selecting';
 
 class CollectEnergy extends BaseEvent implements ICollectEnergy {
   private canvas: ICanvas | null;
@@ -65,8 +65,9 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
       }
     });
     this.interface = new Interface(this.canvas, { horizontalCount: 8 });
-    this.interface.on(LIFE_FINISH, () => {
-      this.changeState(SELECTING);
+    this.interface.on(LIFE_FINISH, (event: IObject) => {
+      const { direction } = event;
+      if (direction === CLOSE) this.changeState(SELECTING);
     });
   }
 
@@ -74,6 +75,9 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
     this.state = state;
     if (this.controller) {
       this.controller.fire(LIFE_CHANGE, { state });
+    }
+    if (this.interface) {
+      this.interface.fire(LIFE_CHANGE, { state });
     }
   }
 
@@ -125,10 +129,12 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
                 if (this.interface) this.interface.off(LIFE_FINISH, onAnimationEnd);
                 this.start();
               };
+              if (this.controller) this.controller.reset();
               if (this.interface) {
+                this.changeState(CHANGING);
                 this.interface
                   .on(LIFE_FINISH, onAnimationEnd)
-                  .startEvolution(Date.now(), MENU_ANIMATION_TIME, 'open');
+                  .startEvolution(Date.now(), MENU_ANIMATION_TIME, OPEN);
               }
             }
           }
