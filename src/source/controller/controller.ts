@@ -263,7 +263,7 @@ class Controller extends BaseEvent implements IController {
       const globesCollection: IGlobeInfo[] = Object.values(this.uiComponents.globes);
       const isNeedGlobe = globesCollection.every((globeInfo: IGlobeInfo) => {
         if (globeInfo.globe && globeInfo.globe.coordinate && this.operationalAreaCoordinates && this.operationalAreaCoordinates[0]) {
-          return globeInfo.globe.coordinate[1] - GLOBE_RADIUS > this.operationalAreaCoordinates[0][1];
+          return globeInfo.globe.coordinate[1] - GLOBE_RADIUS * 2 > this.operationalAreaCoordinates[0][1];
         }
       });
       if (isNeedGlobe) {

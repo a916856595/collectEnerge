@@ -12,7 +12,7 @@ import {
 import BaseEvent from './base/event';
 import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_GOAL, LIFE_MISS } from './constant/life';
 import Interface from './controller/interface';
-import { MENU_ANIMATION_TIME } from '../../config/config';
+import { LOSE_COUNT, MENU_ANIMATION_TIME } from '../../config/config';
 import { CLOSE, OPEN, SELECTING } from './constant/other';
 
 interface ICollectEnergyOptions  {
@@ -62,7 +62,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
     });
     this.controller.on(LIFE_MISS, (event: IObject) => {
       this.missCount += 1;
-      if (this.interface && this.missCount > 5) {
+      if (this.interface && this.missCount >= LOSE_COUNT ) {
         if (this.score > this.highScore) this.highScore = this.score;
         this.select();
       }
