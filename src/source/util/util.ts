@@ -1,14 +1,9 @@
-interface IMessage {
-  warn: (message: string) => void;
-  error: (message: string) => void;
-}
-
-class Message implements IMessage {
-  public warn(message: string) {
+class Message {
+  static warn(message: string) {
     console.warn(message);
   }
 
-  public error(message: string) {
+  static error(message: string) {
     console.error(message);
   }
 }
@@ -17,7 +12,10 @@ export const message = new Message();
 
 const getIdGenerate = (): (() => string) => {
   let index = 0;
-  return () => ++index + '';
-}
+  return function () {
+    index += 1;
+    return String(index);
+  };
+};
 
 export const generateId: () => string = getIdGenerate();
