@@ -1,12 +1,9 @@
-# Empty project template
-Empty project with configured webpack, typescript and es-lint
+# Collect energy
+An imitation of Alipay's canvas game.
 
-### Easy to use:
+### How to use:
 + Download project files
 + Go to project root directory
-+ Run `npm i`
++ Run `npm install`
++ Run `npm run dev`
 
-### Pre-defined npm scripts:
-+ `npm run build` -> build project to the _dist_ folder. Es-lint will be running before build.
-+ `npm run dev` -> run webpack dev server and open browser
-+ `npm run lint` -> run es-lint
