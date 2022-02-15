@@ -12,16 +12,28 @@ import {
   IObject,
   IPop,
   IStuffInstance,
-  StateType
+  StateType,
 } from '../declare/declare';
-import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_GOAL, LIFE_MISS, LIFE_MOVE } from '../constant/life';
+import {
+  LIFE_CHANGE,
+  LIFE_ERROR,
+  LIFE_FINISH,
+  LIFE_GOAL,
+  LIFE_MISS,
+  LIFE_MOVE,
+} from '../constant/life';
 import ImageLoader from '../component/imageLoader';
-import globeConfig from '../../../config/uiConfig';
 import { getMergedOptions } from '../util/methods';
-import { CLICK, RESIZE } from '../constant/baseEvent';
+import {
+  CLICK,
+  RESIZE,
+} from '../constant/baseEvent';
 import Background from '../ui/background';
 import Globe from '../ui/globe';
-import { GLOBE_RADIUS, VERTICAL_ACCELERATION } from '../../../config/config';
+import {
+  GLOBE_RADIUS,
+  VERTICAL_ACCELERATION,
+} from '../../../config/config';
 import { generateId } from '../util/util';
 import UIConfig from '../../../config/uiConfig';
 import Pop from '../ui/pop';
@@ -33,6 +45,7 @@ interface IControllerOptions {
   anchor?: CanvasAnchorType; // operation area anchor, optional center / left / right / top / bottom.
   rate?: number;
 }
+
 interface IGlobeInfo {
   id: string;
   zIndex: number;
@@ -40,6 +53,7 @@ interface IGlobeInfo {
   pop?: IPop;
   state: 'destroyed' | 'exist' | 'prepare',
 }
+
 interface IStuffInfo {
   stuff: IStuffInstance;
   zIndex: number;
@@ -53,21 +67,63 @@ const RUNNING = 'running';
 const controllerDefaultOptions = {
   width: 'auto',
   height: 'auto',
-  anchor: CENTER
+  anchor: CENTER,
 };
+const getContentLength = (total: number, goal = 'auto'): number => {
+  let result;
+  const charLength = goal.length;
+  if (goal.endsWith('%')) {
+    let percentage = Number(goal.substr(0, charLength - 1));
+    percentage = percentage > 100 ? 100 : percentage;
+    percentage = Number.isNaN(percentage) ? 100 : percentage;
+    result = (total * percentage) / 100;
+  } else if (goal.endsWith('px')) {
+    result = Number(goal.substr(0, charLength - 2));
+    result = Number.isNaN(result) ? total : result;
+    if (result > total) result = total;
+  } else {
+    result = total;
+  }
+  return Math.round(result);
+};
+const getPromise = (object: IBaseEvent) => (
+  new Promise((resolve, reject) => {
+    if (object) {
+      object.on(LIFE_FINISH, (event: IObject) => {
+        resolve(event);
+      });
+      object.on(LIFE_ERROR, (event: IObject) => {
+        reject(event);
+      });
+    }
+  })
+);
 
 class Controller extends BaseEvent implements IController {
   public imageLoader: IIMageLoader | null;
-  private canvas: ICanvas | null;                 // 封装后的canvas
+
+  private canvas: ICanvas | null; // 封装后的canvas
+
   private options: IControllerOptions | null;
+
   private operationalAreaCoordinates: CoordinatesType | null = null;
-  private operationalWidth: number = 0;
-  private operationalHeight: number = 0;
-  private uiComponents: IObject | null = { background: undefined, globes: {} };
+
+  private operationalWidth = 0;
+
+  private operationalHeight = 0;
+
+  private uiComponents: IObject | null = {
+    background: undefined,
+    globes: {},
+  };
+
   private canvasEventInfoMap: IObject | null = { [CLICK]: {} };
+
   private eventReferenceMap: IObject | null = {};
+
   private state: StateType = WAITING;
-  private startTime: number = 0;
+
+  private startTime = 0;
 
   constructor(canvas: ICanvas, controllerOptions: IControllerOptions = {}) {
     super();
@@ -80,11 +136,11 @@ class Controller extends BaseEvent implements IController {
     this.options = getMergedOptions(controllerDefaultOptions, controllerOptions);
     this.imageLoader = new ImageLoader();
     // load image source
-    Object.entries(globeConfig.imageConfig).forEach((nameAndUrl: [string, string]) => {
+    Object.entries(UIConfig.imageConfig).forEach((nameAndUrl: [string, string]) => {
       const [name, url] = nameAndUrl;
       if (this.imageLoader) this.imageLoader.load(name, url);
     });
-    const promiseList = [this.getPromise(this.canvas)];
+    const promiseList = [getPromise(this.canvas)];
     // Fire life cycle.
     Promise.all(promiseList)
       .then((event: IObject) => {
@@ -95,6 +151,7 @@ class Controller extends BaseEvent implements IController {
           if (this.eventReferenceMap) {
             // Calculate operation area when canvas resized.
             this.eventReferenceMap[RESIZE] = this.setOperationAreaInfo.bind(this);
+            // eslint-disable-next-line @typescript-eslint/no-shadow
             this.eventReferenceMap[CLICK] = (event: IObject) => {
               this.triggerCanvasEvent(CLICK, event);
             };
@@ -109,40 +166,10 @@ class Controller extends BaseEvent implements IController {
       });
   }
 
-  private getPromise(object: IBaseEvent) {
-    return new Promise((resolve, reject) => {
-      if (object) {
-        object.on(LIFE_FINISH, (event: IObject) => {
-          resolve(event);
-        });
-        object.on(LIFE_ERROR, (event: IObject) => {
-          reject(event);
-        });
-      }
-    });
-  }
-
-  private getContentLength(total: number, goal: string = 'auto'): number {
-    let result;
-    const charLength = goal.length;
-    if (goal.endsWith('%')) {
-      let percentage = Number(goal.substr(0, charLength - 1));
-      percentage = percentage > 100 ? 100 : percentage;
-      percentage = Number.isNaN(percentage) ? 100 : percentage;
-      result = total * percentage / 100;
-    } else if (goal.endsWith('px')) {
-      result = Number(goal.substr(0, charLength - 2));
-      result = Number.isNaN(result) ? total : result;
-      if (result > total) result = total;
-    } else {
-      result = total;
-    }
-    return Math.round(result);
-  }
-
   private setOperationAreaInfo() {
     if (this.canvas && this.options) {
-      let { width, height, anchor, rate } = this.options;
+      let { width, height } = this.options;
+      const { anchor, rate } = this.options;
       const canvasSize = this.canvas.getSize();
       const canvasWidth = canvasSize.width;
       const canvasHeight = canvasSize.height;
@@ -153,7 +180,7 @@ class Controller extends BaseEvent implements IController {
         const pixel = 'px';
         if (rate > 1 && rate >= canvasRate) {
           width = hundredPercentage;
-          height = 1 / rate * canvasWidth + pixel;
+          height = (1 / rate) * canvasWidth + pixel;
         } else if (rate > 1 && rate < canvasRate) {
           height = canvasHeight + pixel;
           width = canvasHeight * rate + pixel;
@@ -164,18 +191,20 @@ class Controller extends BaseEvent implements IController {
           width = canvasWidth + pixel;
           height = canvasWidth / rate + pixel;
         } else if (rate === 1) {
+          // eslint-disable-next-line no-multi-assign
           width = height = Math.min(canvasWidth, canvasHeight) + pixel;
         }
       }
-      const operationalWidth = this.operationalWidth = this.getContentLength(canvasSize.width, width);
-      const operationalHeight = this.operationalHeight = this.getContentLength(canvasSize.height, height);
+      // eslint-disable-next-line no-multi-assign
+      const operationalWidth = this.operationalWidth = getContentLength(canvasSize.width, width);
+      // eslint-disable-next-line no-multi-assign
+      const operationalHeight = this.operationalHeight = getContentLength(canvasSize.height, height);
       const widthDiff = canvasWidth - operationalWidth;
       const heightDiff = canvasHeight - operationalHeight;
       const halfWidthDiff = widthDiff / 2;
       const halfHeightDiff = heightDiff / 2;
       let topLeftCoordinate: CoordinateType;
-      let bottomRightCoordinate: CoordinateType;
-      switch(anchor) {
+      switch (anchor) {
         case 'left':
           topLeftCoordinate = [0, halfHeightDiff];
           break;
@@ -191,22 +220,22 @@ class Controller extends BaseEvent implements IController {
         default:
           topLeftCoordinate = [halfWidthDiff, halfHeightDiff];
       }
-      bottomRightCoordinate = [
+      const bottomRightCoordinate: CoordinateType = [
         topLeftCoordinate[0] + operationalWidth,
-        topLeftCoordinate[1] + operationalHeight
-      ]
+        topLeftCoordinate[1] + operationalHeight,
+      ];
       this.operationalAreaCoordinates = [topLeftCoordinate, bottomRightCoordinate];
     }
   }
 
-  private changeStuffEventMapState(eventType: string, stuffInfo: IStuffInfo, isRemove: boolean = false) {
+  private changeStuffEventMapState(eventType: string, stuffInfo: IStuffInfo, isRemove = false) {
     if (this.canvasEventInfoMap) {
       if (!this.canvasEventInfoMap) (this.canvasEventInfoMap[eventType] as IObject) = {};
       if (isRemove) delete this.canvasEventInfoMap[eventType][stuffInfo.stuff.id];
       else {
         this.canvasEventInfoMap[eventType][stuffInfo.stuff.id] = {
           stuff: stuffInfo.stuff,
-          zIndex: Number(stuffInfo.stuff.id)
+          zIndex: Number(stuffInfo.stuff.id),
         };
       }
     }
@@ -215,14 +244,22 @@ class Controller extends BaseEvent implements IController {
   private triggerCanvasEvent(eventType: string, event: IObject) {
     const coordinate: CoordinateType = [event.x, event.y];
     if (this.canvasEventInfoMap && this.canvasEventInfoMap[eventType]) {
-      let target: { stuff: IStuffInstance | null, zIndex: number } = { stuff: null, zIndex: -1 };
+      let target: { stuff: IStuffInstance | null, zIndex: number } = {
+        stuff: null,
+        zIndex: -1,
+      };
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       Object.values(this.canvasEventInfoMap[eventType]).some((stuffInfo: IStuffInfo) => {
         const { stuff, zIndex } = stuffInfo;
         if (stuff.judgeHasBeenTouch(coordinate, UIConfig.touchBuffer) && zIndex > target.zIndex) {
-          target = { stuff, zIndex };
+          target = {
+            stuff,
+            zIndex,
+          };
           return true;
         }
+        return false;
       });
       if (target && target.stuff) {
         target.stuff.fire(eventType, { coordinate });
@@ -232,14 +269,15 @@ class Controller extends BaseEvent implements IController {
 
   private displayBackground() {
     if (this.canvas && this.uiComponents) {
-      let background = this.uiComponents.background;
+      let { background } = this.uiComponents;
       if (!background) {
+        // eslint-disable-next-line no-multi-assign
         background = this.uiComponents.background = new Background(this.canvas, {
           backgroundType: 'color',
           backgroundValue: 'black',
           foregroundType: 'image',
           foregroundValue: 'background',
-          foregroundCoordinates: this.operationalAreaCoordinates as CoordinatesType
+          foregroundCoordinates: this.operationalAreaCoordinates as CoordinatesType,
         });
       } else background.update(this.operationalAreaCoordinates);
       background.display();
@@ -252,7 +290,7 @@ class Controller extends BaseEvent implements IController {
       const range = this.operationalAreaCoordinates[1][0] - this.operationalAreaCoordinates[0][0] - GLOBE_RADIUS * 2;
       coordinate = [
         this.operationalAreaCoordinates[0][0] + GLOBE_RADIUS + Math.round(Math.random() * range),
-        this.operationalAreaCoordinates[0][1] - GLOBE_RADIUS
+        this.operationalAreaCoordinates[0][1] - GLOBE_RADIUS,
       ];
     }
     return coordinate;
@@ -265,6 +303,7 @@ class Controller extends BaseEvent implements IController {
         if (globeInfo.globe && globeInfo.globe.coordinate && this.operationalAreaCoordinates && this.operationalAreaCoordinates[0]) {
           return globeInfo.globe.coordinate[1] - GLOBE_RADIUS * 2 > this.operationalAreaCoordinates[0][1];
         }
+        return true;
       });
       if (isNeedGlobe) {
         const id = generateId();
@@ -279,6 +318,7 @@ class Controller extends BaseEvent implements IController {
 
   private displayGlobes(span: number): this {
     if (this.uiComponents && this.uiComponents.globes) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       Object.values(this.uiComponents.globes).forEach((globeInfo: IGlobeInfo) => {
         if (globeInfo.state === PREPARE && this.canvas) {
@@ -292,15 +332,15 @@ class Controller extends BaseEvent implements IController {
             xMaxSpeed: 0,
             yMaxSpeed: Infinity,
             xAcceleration: 0,
-            yAcceleration: 0
+            yAcceleration: 0,
           });
           globe.on(LIFE_MOVE, (event: IObject) => {
             const { newCoordinate } = event;
             if (
-              this.uiComponents &&
-              this.operationalAreaCoordinates &&
-              this.operationalAreaCoordinates[1] &&
-              (newCoordinate[1] - GLOBE_RADIUS) > (this.operationalAreaCoordinates[1][1] as number)
+              this.uiComponents
+              && this.operationalAreaCoordinates
+              && this.operationalAreaCoordinates[1]
+              && (newCoordinate[1] - GLOBE_RADIUS) > (this.operationalAreaCoordinates[1][1] as number)
             ) {
               this.fire(LIFE_MISS);
               globe.destroy();
@@ -310,14 +350,14 @@ class Controller extends BaseEvent implements IController {
           globe.on(CLICK, (event: IObject) => {
             if (this.uiComponents && this.state === RUNNING) {
               if (this.canvas && globeInfo.globe) {
-                const pop = new Pop(this.canvas,{
+                const pop = new Pop(this.canvas, {
                   coordinate: globeInfo.globe.coordinate as CoordinateType,
                   during: 0.4,
                   radius: GLOBE_RADIUS / 2,
                   distance: GLOBE_RADIUS * 2,
                   buffer: GLOBE_RADIUS / 2,
                   background: 'green',
-                  count: 9
+                  count: 9,
                 });
                 pop.on(LIFE_FINISH, () => {
                   if (this.uiComponents) delete this.uiComponents.globes[globeInfo.id];
@@ -330,17 +370,22 @@ class Controller extends BaseEvent implements IController {
               this.fire(LIFE_GOAL);
             }
           });
-          this.changeStuffEventMapState(CLICK, { stuff: globe, zIndex: Number(globe.id) });
+          this.changeStuffEventMapState(CLICK, {
+            stuff: globe,
+            zIndex: Number(globe.id),
+          });
           globe.display();
           globeInfo.globe = globe;
           globeInfo.state = EXIST;
         } else if (globeInfo.state === EXIST && globeInfo.globe) {
-          const globe = globeInfo.globe;
+          const { globe } = globeInfo;
           globe.update(span);
           // After updated, component may be removed by move event.
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           globe && globe.display();
         } else if (globeInfo.state === DESTROYED && globeInfo.pop) {
           // After updated, component may be removed by move event.
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           globeInfo.pop && globeInfo.pop.display();
         }
       });
@@ -352,17 +397,19 @@ class Controller extends BaseEvent implements IController {
     if (this.operationalAreaCoordinates && this.uiComponents) {
       this.displayBackground();
       if (isUpdateGlobes) this.updateGlobesInfo();
-      this.displayGlobes(isUpdateGlobes? span : 0);
+      this.displayGlobes(isUpdateGlobes ? span : 0);
     }
     return this;
   }
 
   public reset(): this {
     if (this.uiComponents && this.uiComponents.globes) {
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
       // @ts-ignore
       Object.entries(this.uiComponents.globes).forEach((keyAndGlobeInfo: [string, IGlobeInfo]) => {
         const [key, globeInfo] = keyAndGlobeInfo;
         if (globeInfo.globe) {
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           globeInfo.globe.destroy;
           globeInfo.globe = undefined;
         }
@@ -371,7 +418,7 @@ class Controller extends BaseEvent implements IController {
           globeInfo.pop = undefined;
         }
         if (this.uiComponents) delete this.uiComponents.globes[key];
-      })
+      });
     }
     return this;
   }
@@ -382,6 +429,7 @@ class Controller extends BaseEvent implements IController {
       if (this.eventReferenceMap) {
         Object.entries(this.eventReferenceMap).forEach((eventTypeAndHandler: [string, HandlerType]) => {
           const [eventType, handler] = eventTypeAndHandler;
+          // eslint-disable-next-line @typescript-eslint/no-unused-expressions
           this.canvas && this.canvas.off(eventType, handler);
         });
         this.eventReferenceMap = null;

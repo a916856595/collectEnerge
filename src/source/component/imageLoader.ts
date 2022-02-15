@@ -1,12 +1,20 @@
 import BaseEvent from '../base/event';
-import { LIFE_ERROR, LIFE_FINISH, LIFE_LOADING, LIFE_SUCCESS } from '../constant/life';
-import { ERROR, LOAD } from '../constant/baseEvent';
+import {
+  LIFE_ERROR,
+  LIFE_FINISH,
+  LIFE_LOADING,
+  LIFE_SUCCESS,
+} from '../constant/life';
+import {
+  ERROR,
+  LOAD,
+} from '../constant/baseEvent';
 import { IIMageLoader } from '../declare/declare';
 
-type imageStateType = 'success' | 'loading' | 'error';
+type ImageStateType = 'success' | 'loading' | 'error';
 
 interface IImageInfo {
-  state: imageStateType;
+  state: ImageStateType;
   url: string;
   name: string;
   image: HTMLImageElement;
@@ -35,19 +43,22 @@ class ImageLoader extends BaseEvent implements IIMageLoader {
         url,
         state: LIFE_LOADING,
         name,
-        image: new Image()
+        image: new Image(),
       };
     }
     const imageInfo = this.imageMap[name];
     if (imageInfo.state !== LIFE_SUCCESS) {
-      const image = imageInfo.image;
+      const { image } = imageInfo;
       image.addEventListener(LOAD, () => {
         imageInfo.state = LIFE_SUCCESS;
-        this.fire(LOAD, { name, url });
+        this.fire(LOAD, {
+          name,
+          url,
+        });
         this.checkIsLoadFinish();
       });
       image.addEventListener(ERROR, () => {
-        imageInfo.state = LIFE_ERROR
+        imageInfo.state = LIFE_ERROR;
         this.fire(LIFE_ERROR, { message: `There was an error occupied when loading the image '${url}'.` });
       });
       image.src = url;

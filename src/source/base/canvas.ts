@@ -9,22 +9,30 @@ import {
   IObject,
   IStrokeRectOptions,
   ITextMeasureOptions,
-  ITextMeasureResult
+  ITextMeasureResult,
 } from '../declare/declare';
 import BaseEvent from './event';
-import { LIFE_ERROR, LIFE_FINISH } from '../constant/life';
-import { CLICK, RESIZE } from '../constant/baseEvent';
+import {
+  LIFE_ERROR,
+  LIFE_FINISH,
+} from '../constant/life';
+import {
+  CLICK,
+  RESIZE,
+} from '../constant/baseEvent';
 import { getMergedOptions } from '../util/methods';
 
 interface IStrokeRectOptionsResult {
   strokeColor: string;
   strokeWidth: number;
 }
+
 interface IFillTextOptionsResult {
   font: string;
   fontSize: number;
   fontColor: string;
 }
+
 interface ITextMeasureOptionsResult {
   font: string;
   fontSize: number;
@@ -32,27 +40,32 @@ interface ITextMeasureOptionsResult {
 
 const strokeRectDefaultOptions: IStrokeRectOptionsResult = {
   strokeColor: '#000',
-  strokeWidth: 1
+  strokeWidth: 1,
 };
 const textMeasureDefaultOptions: ITextMeasureOptionsResult = {
   font: 'Arial',
-  fontSize: 12
-}
+  fontSize: 12,
+};
 const fillTextDefaultOptions: IFillTextOptionsResult = {
   font: 'Arial',
   fontSize: 12,
-  fontColor: '#000'
-}
+  fontColor: '#000',
+};
 const PX = 'px';
 const TOP = 'top';
 
 class Canvas extends BaseEvent implements ICanvas {
   private container: HTMLElement | null;
+
   private element: HTMLCanvasElement | null;
+
   private context: CanvasRenderingContext2D | null = null;
+
   private imageLoader: IIMageLoader | null = null;
-  private width: number = 0;
-  private height: number = 0;
+
+  private width = 0;
+
+  private height = 0;
 
   constructor(elementSelector: string) {
     super();
@@ -67,12 +80,12 @@ class Canvas extends BaseEvent implements ICanvas {
     } else {
       this.postponeFire(
         LIFE_ERROR,
-        { message: `Can not find container element that selector is '${elementSelector}'.` }
+        { message: `Can not find container element that selector is '${elementSelector}'.` },
       );
     }
   }
 
-  private setSizeInfo = (event?: IObject, notEmit: boolean = false) => {
+  private setSizeInfo = (event?: IObject, notEmit = false) => {
     if (this.element) {
       const elementInfo = this.element.getBoundingClientRect();
       this.width = elementInfo.width;
@@ -83,11 +96,11 @@ class Canvas extends BaseEvent implements ICanvas {
       if (!notEmit) {
         this.fire(RESIZE, {
           width: this.width,
-          height: this.height
-        })
+          height: this.height,
+        });
       }
     }
-  }
+  };
 
   public setImageLoader(imageLoader: IIMageLoader): this {
     this.imageLoader = imageLoader;
@@ -99,7 +112,7 @@ class Canvas extends BaseEvent implements ICanvas {
     if (!this.width || !this.height) this.setSizeInfo({}, true);
     return {
       width: this.width,
-      height: this.height
+      height: this.height,
     };
   }
 
@@ -109,7 +122,7 @@ class Canvas extends BaseEvent implements ICanvas {
         0,
         0,
         this.width,
-        this.height
+        this.height,
       );
     }
     return this;
@@ -145,7 +158,7 @@ class Canvas extends BaseEvent implements ICanvas {
         topLeftCoordinate[0] + offset,
         topLeftCoordinate[1] + offset,
         bottomRightCoordinate[0] - topLeftCoordinate[0] - strokeWidth,
-        bottomRightCoordinate[1] - topLeftCoordinate[1] - strokeWidth
+        bottomRightCoordinate[1] - topLeftCoordinate[1] - strokeWidth,
       );
     }
     return this;
@@ -180,7 +193,7 @@ class Canvas extends BaseEvent implements ICanvas {
 
   public measureText(text: string, textMeasureOptions: ITextMeasureOptions = textMeasureDefaultOptions): ITextMeasureResult {
     if (this.context) {
-      const options = getMergedOptions(textMeasureDefaultOptions, textMeasureOptions) as ITextMeasureOptionsResult
+      const options = getMergedOptions(textMeasureDefaultOptions, textMeasureOptions) as ITextMeasureOptionsResult;
       this.context.font = `${options.fontSize}${PX} ${options.font}`;
       return this.context.measureText(text);
     }

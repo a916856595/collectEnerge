@@ -1,8 +1,15 @@
-import { HandlerType, IBaseEvent, IEventRecorder, IObject } from '../declare/declare';
+import {
+  HandlerType,
+  IBaseEvent,
+  IEventRecorder,
+  IObject,
+} from '../declare/declare';
 
 class BaseEvent implements IBaseEvent {
   private eventCollectionMap: IEventRecorder | null = {};
+
   private oneTimeEventCollectionMap: IEventRecorder | null = {};
+
   // record timers
   private timerMap: IObject | null = {};
 
@@ -32,6 +39,7 @@ class BaseEvent implements IBaseEvent {
   private trigger(isOnce: boolean, eventType: string, parameters?: IObject) {
     const collectionMap = isOnce ? this.oneTimeEventCollectionMap : this.eventCollectionMap;
     if (collectionMap && collectionMap[eventType]) {
+      // eslint-disable-next-line @typescript-eslint/ban-types
       collectionMap[eventType].forEach((handler: Function) => {
         let event = new Event(eventType);
         if (parameters) {
@@ -71,9 +79,9 @@ class BaseEvent implements IBaseEvent {
       const timer = setTimeout(() => {
         this.fire(eventType, parameters);
         clearTimeout(timer);
-        if (this.timerMap) delete this.timerMap[timer + ''];
+        if (this.timerMap) delete this.timerMap[String(timer)];
       }, delay || 0);
-      this.timerMap[timer + ''] = timer;
+      this.timerMap[String(timer)] = timer;
     }
     return this;
   }
@@ -83,7 +91,7 @@ class BaseEvent implements IBaseEvent {
     if (this.timerMap) {
       Object.values(this.timerMap).forEach((timer: number) => {
         clearTimeout(timer);
-        if (this.timerMap) delete this.timerMap[timer + ''];
+        if (this.timerMap) delete this.timerMap[String(timer)];
       });
     }
     this.eventCollectionMap = null;

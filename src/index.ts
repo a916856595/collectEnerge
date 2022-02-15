@@ -7,7 +7,7 @@ const collectEnergy = new CollectEnergy({
   container: '#container',
   // width: '350px',   // Operation area width, option unit is pixel or percent .
   // height: '700px',  // Operation area height, option unit is pixel or percent .
-  rate: 405 / 721,        // Operation area rate of with and height
+  rate: 405 / 721, // Operation area rate of with and height
   anchor: 'center', // operation area anchor, optional center / left / right / top / bottom.
 });
 collectEnergy.on('error', (event) => {
@@ -22,5 +22,3 @@ collectEnergy.on('finish', (event) => {
   //   collectEnergy.pause()
   // }, 2000)
 });
-
-
