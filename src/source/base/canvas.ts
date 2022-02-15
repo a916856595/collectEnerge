@@ -1,8 +1,8 @@
 import './canvas.scss';
 import {
-  coordinatesType,
-  coordinateType,
-  handlerType,
+  CoordinatesType,
+  CoordinateType,
+  HandlerType,
   ICanvas,
   IFillTextOptions,
   IIMageLoader,
@@ -115,7 +115,7 @@ class Canvas extends BaseEvent implements ICanvas {
     return this;
   }
 
-  public drawFillRect(coordinates: coordinatesType, fillColor: string): this {
+  public drawFillRect(coordinates: CoordinatesType, fillColor: string): this {
     if (this.context) {
       const [topLeftCoordinate, bottomRightCoordinate] = coordinates;
       this.context.beginPath();
@@ -131,7 +131,7 @@ class Canvas extends BaseEvent implements ICanvas {
     return this;
   }
 
-  public drawStrokeRect(coordinates: coordinatesType, strokeRectOptions: IStrokeRectOptions = strokeRectDefaultOptions): this {
+  public drawStrokeRect(coordinates: CoordinatesType, strokeRectOptions: IStrokeRectOptions = strokeRectDefaultOptions): this {
     if (this.context) {
       const options = getMergedOptions(strokeRectDefaultOptions, strokeRectOptions) as IStrokeRectOptionsResult;
       const { strokeWidth, strokeColor } = options;
@@ -151,7 +151,7 @@ class Canvas extends BaseEvent implements ICanvas {
     return this;
   }
 
-  public drawImage(coordinates: coordinatesType, imageName: string): this {
+  public drawImage(coordinates: CoordinatesType, imageName: string): this {
     if (this.context && this.imageLoader) {
       const [topLeftCoordinate, bottomRightCoordinate] = coordinates;
       this.context.beginPath();
@@ -167,7 +167,7 @@ class Canvas extends BaseEvent implements ICanvas {
     return this;
   }
 
-  public drawFillCircle(coordinate: coordinateType, radius: number, fillColor: string): this {
+  public drawFillCircle(coordinate: CoordinateType, radius: number, fillColor: string): this {
     if (this.context) {
       this.context.beginPath();
       this.context.moveTo(coordinate[0], coordinate[1]);
@@ -187,7 +187,7 @@ class Canvas extends BaseEvent implements ICanvas {
     return { width: 0 };
   }
 
-  public drawFillText(coordinate: coordinateType, text: string, fillTextOptions: IFillTextOptions = fillTextDefaultOptions): this {
+  public drawFillText(coordinate: CoordinateType, text: string, fillTextOptions: IFillTextOptions = fillTextDefaultOptions): this {
     if (this.context) {
       const options = getMergedOptions(fillTextDefaultOptions, fillTextOptions) as IFillTextOptionsResult;
       const { font, fontSize, fontColor } = options;
@@ -201,7 +201,7 @@ class Canvas extends BaseEvent implements ICanvas {
     return this;
   }
 
-  public on(eventType: string, handler: handlerType) {
+  public on(eventType: string, handler: HandlerType) {
     if (eventType === CLICK && this.element) {
       this.element.addEventListener(eventType, handler);
     } else {
@@ -210,7 +210,7 @@ class Canvas extends BaseEvent implements ICanvas {
     return this;
   }
 
-  public off(eventType: string, handler?: handlerType) {
+  public off(eventType: string, handler?: HandlerType) {
     if (eventType === CLICK && handler && this.element) {
       this.element.removeEventListener(eventType, handler);
     } else {

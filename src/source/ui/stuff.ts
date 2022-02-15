@@ -1,8 +1,13 @@
 import BaseEvent from '../base/event';
-import { coordinateType, IModifiableStuffConfig, IStuff, IStuffConfig, IStuffOptions } from '../declare/declare';
+import {
+  CoordinateType,
+  IModifiableStuffConfig,
+  IStuff,
+  IStuffConfig,
+  IStuffOptions,
+} from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
 import { LIFE_MOVE } from '../constant/life';
-
 
 const stuffDefaultConfig = {
   xSpeed: 0,
@@ -14,7 +19,8 @@ const stuffDefaultConfig = {
 };
 
 class Stuff extends BaseEvent implements IStuff {
-  public coordinate: coordinateType | null;
+  public coordinate: CoordinateType | null;
+
   private options: IStuffConfig | null = null;
 
   constructor(stuffOptions: IStuffOptions) {
@@ -49,15 +55,15 @@ class Stuff extends BaseEvent implements IStuff {
       const originCoordinate = this.coordinate.slice();
       this.coordinate = [
         this.coordinate[0] + xDistance,
-        this.coordinate[1] + yDistance
-      ]
+        this.coordinate[1] + yDistance,
+      ];
       const newCoordinate = this.coordinate.slice();
       this.options.xSpeed = this.options.xSpeed as number + xSpeedDiff;
       this.options.ySpeed = this.options.ySpeed as number + ySpeedDiff;
       if (xDistance !== 0 || yDistance !== 0) {
         this.fire(LIFE_MOVE, {
           originCoordinate,
-          newCoordinate
+          newCoordinate,
         });
       }
     }

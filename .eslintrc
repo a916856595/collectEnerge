@@ -16,6 +16,7 @@
     "@typescript-eslint"
   ],
   "rules": {
+    "linebreak-style": "off",
     "no-plusplus": "off",
     "no-console": "warn",
     "max-len": ["warn", { "code": 120 }],

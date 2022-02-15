@@ -1,9 +1,9 @@
 import BaseEvent from '../base/event';
 import {
-  canvasAnchorType,
-  coordinatesType,
-  coordinateType,
-  handlerType,
+  CanvasAnchorType,
+  CoordinatesType,
+  CoordinateType,
+  HandlerType,
   IBaseEvent,
   ICanvas,
   IController,
@@ -12,7 +12,7 @@ import {
   IObject,
   IPop,
   IStuffInstance,
-  stateType
+  StateType
 } from '../declare/declare';
 import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_GOAL, LIFE_MISS, LIFE_MOVE } from '../constant/life';
 import ImageLoader from '../component/imageLoader';
@@ -30,7 +30,7 @@ import { WAITING } from '../constant/other';
 interface IControllerOptions {
   width?: string;
   height?: string;
-  anchor?: canvasAnchorType; // operation area anchor, optional center / left / right / top / bottom.
+  anchor?: CanvasAnchorType; // operation area anchor, optional center / left / right / top / bottom.
   rate?: number;
 }
 interface IGlobeInfo {
@@ -60,13 +60,13 @@ class Controller extends BaseEvent implements IController {
   public imageLoader: IIMageLoader | null;
   private canvas: ICanvas | null;                 // 封装后的canvas
   private options: IControllerOptions | null;
-  private operationalAreaCoordinates: coordinatesType | null = null;
+  private operationalAreaCoordinates: CoordinatesType | null = null;
   private operationalWidth: number = 0;
   private operationalHeight: number = 0;
   private uiComponents: IObject | null = { background: undefined, globes: {} };
   private canvasEventInfoMap: IObject | null = { [CLICK]: {} };
   private eventReferenceMap: IObject | null = {};
-  private state: stateType = WAITING;
+  private state: StateType = WAITING;
   private startTime: number = 0;
 
   constructor(canvas: ICanvas, controllerOptions: IControllerOptions = {}) {
@@ -173,8 +173,8 @@ class Controller extends BaseEvent implements IController {
       const heightDiff = canvasHeight - operationalHeight;
       const halfWidthDiff = widthDiff / 2;
       const halfHeightDiff = heightDiff / 2;
-      let topLeftCoordinate: coordinateType;
-      let bottomRightCoordinate: coordinateType;
+      let topLeftCoordinate: CoordinateType;
+      let bottomRightCoordinate: CoordinateType;
       switch(anchor) {
         case 'left':
           topLeftCoordinate = [0, halfHeightDiff];
@@ -213,7 +213,7 @@ class Controller extends BaseEvent implements IController {
   }
 
   private triggerCanvasEvent(eventType: string, event: IObject) {
-    const coordinate: coordinateType = [event.x, event.y];
+    const coordinate: CoordinateType = [event.x, event.y];
     if (this.canvasEventInfoMap && this.canvasEventInfoMap[eventType]) {
       let target: { stuff: IStuffInstance | null, zIndex: number } = { stuff: null, zIndex: -1 };
       // @ts-ignore
@@ -239,15 +239,15 @@ class Controller extends BaseEvent implements IController {
           backgroundValue: 'black',
           foregroundType: 'image',
           foregroundValue: 'background',
-          foregroundCoordinates: this.operationalAreaCoordinates as coordinatesType
+          foregroundCoordinates: this.operationalAreaCoordinates as CoordinatesType
         });
       } else background.update(this.operationalAreaCoordinates);
       background.display();
     }
   }
 
-  private generateGlobeCoordinate(): coordinateType {
-    let coordinate: coordinateType = [0, 0];
+  private generateGlobeCoordinate(): CoordinateType {
+    let coordinate: CoordinateType = [0, 0];
     if (this.operationalAreaCoordinates && this.operationalAreaCoordinates[0] && this.operationalAreaCoordinates[1]) {
       const range = this.operationalAreaCoordinates[1][0] - this.operationalAreaCoordinates[0][0] - GLOBE_RADIUS * 2;
       coordinate = [
@@ -311,7 +311,7 @@ class Controller extends BaseEvent implements IController {
             if (this.uiComponents && this.state === RUNNING) {
               if (this.canvas && globeInfo.globe) {
                 const pop = new Pop(this.canvas,{
-                  coordinate: globeInfo.globe.coordinate as coordinateType,
+                  coordinate: globeInfo.globe.coordinate as CoordinateType,
                   during: 0.4,
                   radius: GLOBE_RADIUS / 2,
                   distance: GLOBE_RADIUS * 2,
@@ -380,7 +380,7 @@ class Controller extends BaseEvent implements IController {
     if (this.canvas) {
       // clear events
       if (this.eventReferenceMap) {
-        Object.entries(this.eventReferenceMap).forEach((eventTypeAndHandler: [string, handlerType]) => {
+        Object.entries(this.eventReferenceMap).forEach((eventTypeAndHandler: [string, HandlerType]) => {
           const [eventType, handler] = eventTypeAndHandler;
           this.canvas && this.canvas.off(eventType, handler);
         });

@@ -5,22 +5,35 @@ import {
   ICanvas,
   IController,
   IObject,
-  canvasAnchorType,
-  stateType,
-  IInterface
+  CanvasAnchorType,
+  StateType,
+  IInterface,
 } from './declare/declare';
 import BaseEvent from './base/event';
-import { LIFE_CHANGE, LIFE_ERROR, LIFE_FINISH, LIFE_GOAL, LIFE_MISS } from './constant/life';
+import {
+  LIFE_CHANGE,
+  LIFE_ERROR,
+  LIFE_FINISH,
+  LIFE_GOAL,
+  LIFE_MISS,
+} from './constant/life';
 import Interface from './controller/interface';
-import { LOSE_COUNT, MENU_ANIMATION_TIME } from '../../config/config';
-import { CLOSE, OPEN, SELECTING } from './constant/other';
+import {
+  LOSE_COUNT,
+  MENU_ANIMATION_TIME,
+} from '../../config/config';
+import {
+  CLOSE,
+  OPEN,
+  SELECTING,
+} from './constant/other';
 
-interface ICollectEnergyOptions  {
-  container: string;     // The dom element selector.
-  width?: string;        // Operation area width, option unit is pixel or percent, default auto.
-  height?: string;       // Operation area height, option unit is pixel or percent, default auto.
-  rate?: number;         // Operation area rate of with and height
-  anchor?: canvasAnchorType;
+interface ICollectEnergyOptions {
+  container: string; // The dom element selector.
+  width?: string; // Operation area width, option unit is pixel or percent, default auto.
+  height?: string; // Operation area height, option unit is pixel or percent, default auto.
+  rate?: number; // Operation area rate of with and height
+  anchor?: CanvasAnchorType;
 }
 
 const RUNNING = 'running';
@@ -29,14 +42,22 @@ const CHANGING = 'changing';
 
 class CollectEnergy extends BaseEvent implements ICollectEnergy {
   private canvas: ICanvas | null;
+
   private controller: IController | null;
+
   private interface: IInterface | null;
-  private state: stateType = CHANGING; // 游戏状态
-  private frameSign: number = 0;
-  private timeStamp: number = 0;
-  private missCount: number = 0;
-  private score: number = 0;
-  private highScore: number = 0;
+
+  private state: StateType = CHANGING; // 游戏状态
+
+  private frameSign = 0;
+
+  private timeStamp = 0;
+
+  private missCount = 0;
+
+  private score = 0;
+
+  private highScore = 0;
 
   constructor(collectEnergyOptions: ICollectEnergyOptions) {
     super();
@@ -45,14 +66,14 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
       width,
       height,
       rate,
-      anchor
+      anchor,
     } = collectEnergyOptions;
     this.canvas = new Canvas(container);
     this.controller = new Controller(this.canvas, {
       width,
       height,
       rate,
-      anchor
+      anchor,
     });
     this.controller.on(LIFE_FINISH, (event: IObject) => {
       this.postponeFire(LIFE_FINISH, event);
@@ -62,7 +83,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
     });
     this.controller.on(LIFE_MISS, (event: IObject) => {
       this.missCount += 1;
-      if (this.interface && this.missCount >= LOSE_COUNT ) {
+      if (this.interface && this.missCount >= LOSE_COUNT) {
         if (this.score > this.highScore) this.highScore = this.score;
         this.select();
       }
@@ -77,7 +98,7 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
     });
   }
 
-  private changeState(state: stateType) {
+  private changeState(state: StateType) {
     this.state = state;
     if (this.controller) {
       this.controller.fire(LIFE_CHANGE, { state });
@@ -143,13 +164,13 @@ class CollectEnergy extends BaseEvent implements ICollectEnergy {
                   .on(LIFE_FINISH, onAnimationEnd)
                   .startEvolution(Date.now(), MENU_ANIMATION_TIME, OPEN);
               }
-            }
+            },
           },
           {
-            text: `HIGH SCORE: ${this.highScore}`
-          }
+            text: `HIGH SCORE: ${this.highScore}`,
+          },
         ])
-        .startEvolution(Date.now(), isFirst? 0 : MENU_ANIMATION_TIME);
+        .startEvolution(Date.now(), isFirst ? 0 : MENU_ANIMATION_TIME);
     }
     this.beginFrame();
     return this;

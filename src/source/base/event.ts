@@ -1,4 +1,4 @@
-import { handlerType, IBaseEvent, IEventRecorder, IObject } from '../declare/declare';
+import { HandlerType, IBaseEvent, IEventRecorder, IObject } from '../declare/declare';
 
 class BaseEvent implements IBaseEvent {
   private eventCollectionMap: IEventRecorder | null = {};
@@ -6,7 +6,7 @@ class BaseEvent implements IBaseEvent {
   // record timers
   private timerMap: IObject | null = {};
 
-  private bind(isOnce: boolean, eventType: string, handler: handlerType) {
+  private bind(isOnce: boolean, eventType: string, handler: HandlerType) {
     const collectionMap = isOnce ? this.oneTimeEventCollectionMap : this.eventCollectionMap;
     if (!collectionMap) return this;
     if (!collectionMap[eventType]) {
@@ -18,7 +18,7 @@ class BaseEvent implements IBaseEvent {
     return this;
   }
 
-  private release(isOnce: boolean, eventType: string, handler?: handlerType) {
+  private release(isOnce: boolean, eventType: string, handler?: HandlerType) {
     const collectionMap = isOnce ? this.oneTimeEventCollectionMap : this.eventCollectionMap;
     if (!collectionMap || !collectionMap[eventType]) return this;
     if (!handler) delete collectionMap[eventType];
@@ -46,15 +46,15 @@ class BaseEvent implements IBaseEvent {
     }
   }
 
-  public on(eventType: string, handler: handlerType) {
+  public on(eventType: string, handler: HandlerType) {
     return this.bind(false, eventType, handler);
   }
 
-  public once(eventType: string, handler: handlerType) {
+  public once(eventType: string, handler: HandlerType) {
     return this.bind(true, eventType, handler);
   }
 
-  public off(eventType: string, handler?: handlerType) {
+  public off(eventType: string, handler?: HandlerType) {
     this.release(true, eventType, handler);
     this.release(false, eventType, handler);
     return this;

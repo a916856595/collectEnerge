@@ -1,18 +1,17 @@
-export type handlerType = (event: IObject) => void;
-export type coordinateType = [number, number];
-export type coordinatesType = coordinateType[];
-export type canvasAnchorType = 'center' | 'left' | 'right' | 'top' | 'bottom';
-export type backgroundType = 'color' | 'image';
-export type directionType = 'close' | 'open';
+export type HandlerType = (event: IObject) => void;
+export type CoordinateType = [number, number];
+export type CoordinatesType = CoordinateType[];
+export type CanvasAnchorType = 'center' | 'left' | 'right' | 'top' | 'bottom';
+export type BackgroundType = 'color' | 'image';
+export type DirectionType = 'close' | 'open';
 
 export interface IBaseEvent {
-  on: (eventType: string, handler: handlerType) => this;
-  once: (eventType: string, handler: handlerType) => this;
-  off: (eventType: string, handler?: handlerType) => this;
+  on: (eventType: string, handler: HandlerType) => this;
+  once: (eventType: string, handler: HandlerType) => this;
+  off: (eventType: string, handler?: HandlerType) => this;
   fire: (eventType: string, parameters?: IObject) => this;
   postponeFire: (eventType: string, parameters?: IObject, delay?: number) => this;
 }
-
 
 export interface ICollectEnergy extends IBaseEvent {
   start: () => this;
@@ -20,8 +19,8 @@ export interface ICollectEnergy extends IBaseEvent {
   destroy: () => void;
 }
 
-
 export interface IEventRecorder {
+  // eslint-disable-next-line @typescript-eslint/ban-types
   [key: string]: Function[];
 }
 
@@ -50,12 +49,12 @@ export interface ICanvas extends IBaseEvent {
   setImageLoader: (imageLoader: IIMageLoader) => this;
   destroy: () => void;
   clear: () => this;
-  drawFillRect: (coordinates: coordinatesType, fillColor: string) => this;
+  drawFillRect: (coordinates: CoordinatesType, fillColor: string) => this;
   measureText: (text: string, textMeasureOptions?: ITextMeasureOptions) => ITextMeasureResult;
-  drawFillText: (coordinate: coordinateType, text: string, fillTextOptions?: IFillTextOptions) => this;
-  drawStrokeRect: (coordinates: coordinatesType, strokeRectOptions?: IStrokeRectOptions) => this;
-  drawImage: (coordinates: coordinatesType, imageName: string) => this;
-  drawFillCircle: (coordinate: coordinateType, radius: number, fillColor: string) => this;
+  drawFillText: (coordinate: CoordinateType, text: string, fillTextOptions?: IFillTextOptions) => this;
+  drawStrokeRect: (coordinates: CoordinatesType, strokeRectOptions?: IStrokeRectOptions) => this;
+  drawImage: (coordinates: CoordinatesType, imageName: string) => this;
+  drawFillCircle: (coordinate: CoordinateType, radius: number, fillColor: string) => this;
 }
 
 export interface IController extends IBaseEvent {
@@ -64,7 +63,7 @@ export interface IController extends IBaseEvent {
   destroy: () => void;
 }
 
-export type stateType = 'pausing' | 'running' | 'ended' | 'preparing' | 'waiting' | 'changing' | 'selecting';
+export type StateType = 'pausing' | 'running' | 'ended' | 'preparing' | 'waiting' | 'changing' | 'selecting';
 
 export interface IObject {
   [key: string]: any;
@@ -89,11 +88,11 @@ export interface IStuffConfig extends IModifiableStuffConfig {
 }
 
 export interface IStuffOptions extends IStuffConfig {
-  coordinate: coordinateType;
+  coordinate: CoordinateType;
 }
 
 export interface IStuff extends IBaseEvent {
-  coordinate: coordinateType | null;
+  coordinate: CoordinateType | null;
   update: (span: number, config: IModifiableStuffConfig) => this;
   destroy: () => void;
 }
@@ -108,7 +107,7 @@ export interface IGlobe extends IStuff {
   display: () => this;
   update: (span: number) => this;
   destroy: () => void;
-  judgeHasBeenTouch: (coordinate: coordinateType, buffer?: number) => boolean;
+  judgeHasBeenTouch: (coordinate: CoordinateType, buffer?: number) => boolean;
 }
 
 export interface IPop extends IStuff {
@@ -118,17 +117,17 @@ export interface IPop extends IStuff {
 
 export interface IStuffInstance extends IBaseEvent {
   id: string;
-  judgeHasBeenTouch: (coordinate: coordinateType, buffer?: number) => boolean;
+  judgeHasBeenTouch: (coordinate: CoordinateType, buffer?: number) => boolean;
 }
 
 export interface IMenuOptions {
   text: string;
   onChoose?: () => void;
-  coordinates?: coordinatesType;
+  coordinates?: CoordinatesType;
 }
 
 export interface IInterface extends IBaseEvent {
-  startEvolution: (startTime: number, during: number, direction?: directionType) => this;
+  startEvolution: (startTime: number, during: number, direction?: DirectionType) => this;
   setMenu: (menu: IMenuOptions[]) => this;
   frame: (span: number) => this;
   destroy: () => void;

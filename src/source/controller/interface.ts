@@ -1,20 +1,28 @@
 import BaseEvent from '../base/event';
 import {
-  coordinatesType, coordinateType,
-  directionType,
-  handlerType,
+  CoordinatesType,
+  CoordinateType,
+  DirectionType,
+  HandlerType,
   ICanvas,
   IInterface,
   IMenuOptions,
   IObject,
-  stateType
+  StateType,
 } from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
-import { LIFE_CHANGE, LIFE_FINISH } from '../constant/life';
+import {
+  LIFE_CHANGE,
+  LIFE_FINISH,
+} from '../constant/life';
 import UIConfig from '../../../config/uiConfig';
 import { CLICK } from '../constant/baseEvent';
 import { isCoordinateInRect } from '../util/mathUtil';
-import { CLOSE, SELECTING, WAITING } from '../constant/other';
+import {
+  CLOSE,
+  SELECTING,
+  WAITING,
+} from '../constant/other';
 
 interface IInterfaceOptions {
   horizontalCount?: number;
@@ -30,14 +38,22 @@ const interfaceDefaultOptions = {
 
 class Interface extends BaseEvent implements IInterface {
   private canvas: ICanvas | null;
+
   private options: IInterfaceOptionsResult | null;
-  private startTime: number = 0;
-  private frameTime: number = 0;
-  private during: number = 0;
+
+  private startTime = 0;
+
+  private frameTime = 0;
+
+  private during = 0;
+
   private menu: IMenuOptions[] | null = null;
-  private direction: directionType = CLOSE;
-  private lastCanvasEvent: handlerType | null = null;
-  private state: stateType = WAITING;
+
+  private direction: DirectionType = CLOSE;
+
+  private lastCanvasEvent: HandlerType | null = null;
+
+  private state: StateType = WAITING;
 
   constructor(canvas: ICanvas, interfaceOptions: IInterfaceOptions = interfaceDefaultOptions) {
     super();
@@ -59,18 +75,23 @@ class Interface extends BaseEvent implements IInterface {
         const verticalCount = Math.ceil(height / singleWith);
         const total = horizontalCount * verticalCount;
         const diffPercentage = (targetTime - currentTime) / (this.during * 1000);
-        const strokeWidth = (this.direction === CLOSE ? (1 - diffPercentage) : diffPercentage) * singleWith / 2;
+        const strokeWidth = (this.direction === CLOSE ? (1 - diffPercentage) : diffPercentage) * (singleWith / 2);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
         // @ts-ignore
+        // eslint-disable-next-line prefer-spread
         Array.apply(undefined, { length: total }).forEach((item: undefined, index: number) => {
           const realIndex = index + 1;
           const xOrder = index % horizontalCount;
           const yOrder = Math.ceil(realIndex / horizontalCount) - 1;
           if (this.canvas) {
-            const coordinates: coordinatesType = [
+            const coordinates: CoordinatesType = [
               [xOrder * singleWith, yOrder * singleWith],
-              [(xOrder + 1) * singleWith, (yOrder + 1) * singleWith]
+              [(xOrder + 1) * singleWith, (yOrder + 1) * singleWith],
             ];
-            this.canvas.drawStrokeRect(coordinates, { strokeWidth, strokeColor: UIConfig.menuBackgroundColor });
+            this.canvas.drawStrokeRect(coordinates, {
+              strokeWidth,
+              strokeColor: UIConfig.menuBackgroundColor,
+            });
           }
         });
       }
@@ -80,9 +101,9 @@ class Interface extends BaseEvent implements IInterface {
   private frameMenu() {
     if (this.canvas) {
       const { width, height } = this.canvas.getSize();
-      const coordinates: coordinatesType = [
+      const coordinates: CoordinatesType = [
         [0, 0],
-        [width, height]
+        [width, height],
       ];
       this.canvas.drawFillRect(coordinates, UIConfig.menuBackgroundColor);
       if (this.menu) {
@@ -91,16 +112,19 @@ class Interface extends BaseEvent implements IInterface {
           if (this.canvas) {
             const textWidth = this.canvas.measureText(menu.text, { fontSize: UIConfig.menuFontSize }).width;
             const x = width / 2 - textWidth / 2;
-            const y = height / (total + 1) * (index + 1) - UIConfig.menuFontSize / 2;
-            const topLeftCoordinate: coordinateType = [x, y];
+            const y = (height / (total + 1)) * (index + 1) - UIConfig.menuFontSize / 2;
+            const topLeftCoordinate: CoordinateType = [x, y];
             menu.coordinates = [
               [x, y],
-              [x + textWidth, y + UIConfig.menuFontSize]
+              [x + textWidth, y + UIConfig.menuFontSize],
             ];
             this.canvas.drawFillText(
               topLeftCoordinate,
               menu.text,
-              { fontColor: UIConfig.menuFontColor, fontSize: UIConfig.menuFontSize }
+              {
+                fontColor: UIConfig.menuFontColor,
+                fontSize: UIConfig.menuFontSize,
+              },
             );
           }
         });
@@ -108,12 +132,15 @@ class Interface extends BaseEvent implements IInterface {
     }
   }
 
-  public startEvolution(startTime: number, during: number, direction: directionType = CLOSE): this {
+  public startEvolution(startTime: number, during: number, direction: DirectionType = CLOSE): this {
     this.startTime = startTime;
     this.during = during;
     this.direction = direction;
     if (this.during <= 0) {
-      this.fire(LIFE_FINISH, { startTime: this.startTime, direction });
+      this.fire(LIFE_FINISH, {
+        startTime: this.startTime,
+        direction,
+      });
     }
     return this;
   }
@@ -127,6 +154,7 @@ class Interface extends BaseEvent implements IInterface {
       this.lastCanvasEvent = (event: IObject) => {
         const { x, y } = event;
         if (this.menu) {
+          // eslint-disable-next-line @typescript-eslint/no-shadow
           this.menu.forEach((menu: IMenuOptions) => {
             const { coordinates, onChoose } = menu;
             const isClickAtRect = !!coordinates && isCoordinateInRect([x, y], coordinates);
@@ -143,7 +171,10 @@ class Interface extends BaseEvent implements IInterface {
     const currentTime = Date.now();
     const targetTime = this.startTime + this.during * 1000;
     if (this.frameTime < targetTime && currentTime >= targetTime) {
-      this.fire(LIFE_FINISH, { startTime: this.startTime, direction: this.direction });
+      this.fire(LIFE_FINISH, {
+        startTime: this.startTime,
+        direction: this.direction,
+      });
     }
     if (currentTime < targetTime) this.frameAnimation(currentTime);
     if (currentTime >= targetTime) this.frameMenu();

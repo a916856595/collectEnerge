@@ -1,13 +1,17 @@
 import BaseEvent from '../base/event';
-import { backgroundType, coordinatesType, ICanvas } from '../declare/declare';
+import {
+  BackgroundType,
+  CoordinatesType,
+  ICanvas,
+} from '../declare/declare';
 import { getMergedOptions } from '../util/methods';
 
 interface IBackgroundOptions {
   backgroundValue?: string;
-  backgroundType?: backgroundType;
+  backgroundType?: BackgroundType;
   foregroundValue?: string;
-  foregroundType?: backgroundType;
-  foregroundCoordinates?: coordinatesType;
+  foregroundType?: BackgroundType;
+  foregroundCoordinates?: CoordinatesType;
 }
 
 const IMAGE = 'image';
@@ -16,13 +20,15 @@ const backgroundDefaultOptions = {
   backgroundValue: '#000',
   backgroundType: COLOR,
   foregroundValue: '#FFF',
-  foregroundType: COLOR
+  foregroundType: COLOR,
 };
 
 class Background extends BaseEvent {
   private canvas: ICanvas | null;
+
   private options: IBackgroundOptions | null;
-  private foregroundCoordinates: coordinatesType | null = null;
+
+  private foregroundCoordinates: CoordinatesType | null = null;
 
   constructor(canvas: ICanvas, backgroundOptions: IBackgroundOptions) {
     super();
@@ -32,7 +38,7 @@ class Background extends BaseEvent {
     if (foregroundCoordinates) this.foregroundCoordinates = foregroundCoordinates;
   }
 
-  private displayBackground(coordinates: coordinatesType, backgroundType: backgroundType, backgroundValue: string) {
+  private displayBackground(coordinates: CoordinatesType, backgroundType: BackgroundType, backgroundValue: string) {
     if (this.canvas) {
       const methodName = backgroundType === IMAGE ? 'drawImage' : 'drawFillRect';
       this.canvas[methodName](coordinates, backgroundValue);
@@ -42,26 +48,26 @@ class Background extends BaseEvent {
 
   public display(): this {
     if (
-      this.canvas &&
-      this.options &&
-      this.options.backgroundType &&
-      this.options.backgroundValue &&
-      this.options.foregroundType &&
-      this.options.foregroundValue &&
-      this.foregroundCoordinates
+      this.canvas
+      && this.options
+      && this.options.backgroundType
+      && this.options.backgroundValue
+      && this.options.foregroundType
+      && this.options.foregroundValue
+      && this.foregroundCoordinates
     ) {
       const canvasSize = this.canvas.getSize();
-      const backgroundCoordinates: coordinatesType = [
+      const backgroundCoordinates: CoordinatesType = [
         [0, 0],
-        [canvasSize.width, canvasSize.height]
-      ]
+        [canvasSize.width, canvasSize.height],
+      ];
       this.displayBackground(backgroundCoordinates, this.options.backgroundType, this.options.backgroundValue);
       this.displayBackground(this.foregroundCoordinates, this.options.foregroundType, this.options.foregroundValue);
     }
     return this;
   }
 
-  public update(coordinates: coordinatesType): this {
+  public update(coordinates: CoordinatesType): this {
     this.foregroundCoordinates = coordinates;
     return this;
   }
@@ -75,4 +81,3 @@ class Background extends BaseEvent {
 }
 
 export default Background;
-
